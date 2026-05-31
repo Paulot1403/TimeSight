@@ -10,10 +10,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.8" PrivateAssets="all" />
-  </ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.8" />
+      <PackageReference Include="Supabase" Version="1.1.1" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\TimeSight.SupabaseClient\TimeSight.SupabaseClient.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,77 @@
+@page "/authentication/{action}"
+@inject Supabase.Client Supabase
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@switch (Action)
+{
+    case "login":
+        <LoginForm />
+        break;
+
+    case "callback":
+        <p>Authentification en cours...</p>
+        break;
+
+    case "logout":
+        <p>Déconnexion en cours...</p>
+        break;
+
+    case "logged-out":
+        <p>Vous êtes déconnecté. <a href="/authentication/login">Se reconnecter</a></p>
+        break;
+}
+
+@code {
+    [Parameter] public string? Action { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        switch (Action)
+        {
+            case "logout":
+                await Supabase.Auth.SignOut();
+                Navigation.NavigateTo("/authentication/logged-out");
+                break;
+            case "callback":
+                await HandleOAuthCallback();
+                break;
+        }
+    }
+
+    private async Task HandleOAuthCallback()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var code = GetQueryParam(uri.Query, "code");
+
+        if (code is null)
+        {
+            Navigation.NavigateTo("/authentication/login");
+            return;
+        }
+
+        try
+        {
+            var verifier = await JS.InvokeAsync<string?>("sessionStorage.getItem", "pkce_verifier");
+            await JS.InvokeVoidAsync("sessionStorage.removeItem", "pkce_verifier");
+            await Supabase.Auth.ExchangeCodeForSession(verifier ?? "", code);
+            Navigation.NavigateTo("/");
+        }
+        catch
+        {
+            Navigation.NavigateTo("/authentication/login");
+        }
+    }
+
+    private static string? GetQueryParam(string query, string key)
+    {
+        query = query.TrimStart('?');
+        foreach (var part in query.Split('&'))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2 && kv[0] == key)
+                return Uri.UnescapeDataString(kv[1]);
+        }
+        return null;
+    }
+}
