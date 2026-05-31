@@ -1,6 +1,8 @@
 @using System.ComponentModel.DataAnnotations
 @using Supabase.Gotrue;
-@inject Supabase.Client Supabase
+@using TimeSight.SupabaseClient.Models
+
+@inject SupabaseAuthService authService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -44,7 +46,7 @@
         _loading = true;
         try
         {
-            await Supabase.Auth.SignIn(_model.Email, _model.Password);
+            await authService.SignIn(_model.Email, _model.Password);
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)
@@ -63,20 +65,17 @@
         _loading = true;
         try
         {
-            ProviderAuthState? state = await Supabase.Auth.SignIn(
-                Constants.Provider.Github,
-                new SignInOptions
-                {
-                    RedirectTo = Navigation.BaseUri + "authentication/callback",
-                    FlowType = Constants.OAuthFlowType.PKCE
-                });
+            SignInInfo? signInInfo = await authService.GetSignInInfoForProvider(
+                    Constants.Provider.Github,
+                     Navigation.BaseUri + "authentication/callback");
 
-            if (state?.Uri is not null)
+            
+            if (signInInfo.SignInUri is not null)
             {
-                if (state.PKCEVerifier is not null)
-                    await JS.InvokeVoidAsync("sessionStorage.setItem", "pkce_verifier", state.PKCEVerifier);
+                if (signInInfo.PKCEVerifier is not null)
+                    await JS.InvokeVoidAsync("sessionStorage.setItem", "pkce_verifier", signInInfo.PKCEVerifier);
 
-                Navigation.NavigateTo(state.Uri.ToString(), forceLoad: true);
+                Navigation.NavigateTo(signInInfo.SignInUri.ToString(), forceLoad: true);
             }
         }
         catch (Exception ex)

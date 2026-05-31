@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 
-namespace TimeSight.Auth;
+namespace TimeSight.SupabaseClient.Auth;
 
 /// <summary>
 /// Link between Supabase Auth and Blazor Auth
@@ -25,7 +25,7 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposabl
 
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var user = _supabase.Auth.CurrentUser;
+        User? user = _supabase.Auth.CurrentUser;
 
         if (user is null)
             return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));

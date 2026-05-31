@@ -1,5 +1,5 @@
 @page "/authentication/{action}"
-@inject Supabase.Client Supabase
+@inject SupabaseAuthService authService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
@@ -30,7 +30,7 @@
         switch (Action)
         {
             case "logout":
-                await Supabase.Auth.SignOut();
+                await authService.SignOut();
                 Navigation.NavigateTo("/authentication/logged-out");
                 break;
             case "callback":
@@ -54,7 +54,7 @@
         {
             var verifier = await JS.InvokeAsync<string?>("sessionStorage.getItem", "pkce_verifier");
             await JS.InvokeVoidAsync("sessionStorage.removeItem", "pkce_verifier");
-            await Supabase.Auth.ExchangeCodeForSession(verifier ?? "", code);
+            await authService.SignInWithCode(verifier ?? "", code);
             Navigation.NavigateTo("/");
         }
         catch
