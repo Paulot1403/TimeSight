@@ -4,4 +4,99 @@
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+<button type="button" class="btn btn-primary">Reorder</button>
+
+
+<ul class="container text-center list-unstyled">
+    @foreach (var chore in Chores)
+    {
+        <li>
+            <div class="row">
+                <div class="form-check col-2">
+                    <input class="form-check-input" type="checkbox" value="" id="checkDefault">
+                    <label class="form-check-label" for="checkDefault">
+                        IsDone
+                    </label>
+                </div>
+                <div class="test col-2">
+                    @chore.Name
+                </div>
+                <div class="col-2">
+                    <label for="range2" class="form-label">Significance</label>
+                    <input type="range" class="form-range " min="1" max="4" @bind="chore.Significance" @bind:event="oninput"
+                           id="range2">
+                </div>
+                <div class="col-2">
+                    <label for="range2" class="form-label">Duration</label>
+                    <input type="range" class="form-range " min="1" max="4" @bind="chore.Duration" @bind:event="oninput"
+                           id="range2">
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        Dropdown button
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var domain in Domains
+                            .Where(d =>
+                            {
+                                return !ChoreDomains.Any(cd => matches(cd, chore, d));
+                            }))
+                        {
+                            <li><a class="dropdown-item" @onclick="() => AddLink(chore, domain)">@domain.Name</a></li>
+                        }
+
+                    </ul>
+                </div>
+
+                <div class="btn-group col-2" role="group" aria-label="Basic example">
+                    @foreach (var domain in Domains
+                    .Where(d => ChoreDomains.Where(cd => matches(cd, chore, d)).Any()))
+                    {
+                        <button type="button" class="btn btn-primary"
+                                @onclick="() => RemoveLink(chore, domain)">@domain.Name</button>
+
+                    }
+                </div>
+
+            </div>
+        </li>
+    }
+</ul>
+
+
+@code {
+    private static Guid userId = Guid.NewGuid();
+    private List<Chore> Chores = new List<Chore>(){
+        new Chore(){UserId=userId,Name="Chore 1",Id=1},
+        new Chore(){UserId=userId,Name="Chore 2",Id=2}
+        };
+
+    private List<Domain> Domains = new List<Domain>(){
+        new Domain(){UserId=userId,Name="Domain 1",Id=1},
+        new Domain(){UserId=userId,Name="Domain 2",Id=2}
+        };
+
+    private List<ChoreDomain> ChoreDomains = new List<ChoreDomain>(){
+        new ChoreDomain(){UserId=userId,ChoreId=1,DomainId=1},
+        new ChoreDomain(){UserId=userId,ChoreId=2,DomainId=1,Intensity=3},
+        new ChoreDomain(){UserId=userId,ChoreId=2,DomainId=2}
+        };
+
+    public void RemoveLink(Chore chore, Domain domain)
+    {
+        ChoreDomains.RemoveAll(cd => matches(cd, chore, domain));
+    }
+    public void AddLink(Chore chore, Domain domain)
+    {
+        //TODO faire gaffe int casting
+        ChoreDomains.Add(new() { ChoreId = (int)chore.Id, DomainId = (int)domain.Id, UserId = chore.UserId });
+    }
+
+    private bool matches(ChoreDomain choreDomain, Chore chore, Domain domain)
+    {
+        return choreDomain.ChoreId == chore.Id && choreDomain.DomainId == domain.Id;
+    }
+
+}
