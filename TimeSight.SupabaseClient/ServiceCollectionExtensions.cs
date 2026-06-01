@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
             });
         });
         services.AddSingleton<SupabaseAuthService>();
+        services.AddSingleton<SupabaseChoreService>();
         services.AddScoped<AuthenticationStateProvider, SupabaseAuthStateProvider>();
 
         return services.AddOptions<SupabaseClientOptions>().ValidateDataAnnotations();

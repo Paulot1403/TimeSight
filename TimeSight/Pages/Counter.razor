@@ -1,5 +1,6 @@
 ﻿@page "/counter"
 
+@inject SupabaseChoreService choreService
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
@@ -8,11 +9,16 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<button class="btn btn-primary" @onclick="GetChoresAsync">Get Chores</button>
 @code {
     private int currentCount = 0;
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+    private async Task GetChoresAsync()
+    {
+        var sg = await choreService.GetChores();
     }
 }
