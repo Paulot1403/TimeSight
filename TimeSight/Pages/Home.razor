@@ -1,4 +1,10 @@
 ﻿@page "/"
+@using TimeSight.repositories
+@using System.Security.Claims
+
+@attribute [Authorize]
+@inject IChoreRepository choreRepository;
+
 
 <PageTitle>Home</PageTitle>
 
@@ -8,7 +14,7 @@
 
 
 <ul class="container text-center list-unstyled">
-    @foreach (var chore in Chores)
+    @foreach (var chore in chores)
     {
         <li>
             <div class="row">
@@ -38,10 +44,10 @@
                         Dropdown button
                     </button>
                     <ul class="dropdown-menu">
-                        @foreach (var domain in Domains
+                        @foreach (var domain in domains
                             .Where(d =>
                             {
-                                return !ChoreDomains.Any(cd => matches(cd, chore, d));
+                                return !choreDomains.Any(cd => matches(cd, chore, d));
                             }))
                         {
                             <li><a class="dropdown-item" @onclick="() => AddLink(chore, domain)">@domain.Name</a></li>
@@ -51,8 +57,8 @@
                 </div>
 
                 <div class="btn-group col-2" role="group" aria-label="Basic example">
-                    @foreach (var domain in Domains
-                    .Where(d => ChoreDomains.Where(cd => matches(cd, chore, d)).Any()))
+                    @foreach (var domain in domains
+                    .Where(d => choreDomains.Where(cd => matches(cd, chore, d)).Any()))
                     {
                         <button type="button" class="btn btn-primary"
                                 @onclick="() => RemoveLink(chore, domain)">@domain.Name</button>
@@ -63,40 +69,56 @@
             </div>
         </li>
     }
+    <div class="row">
+        <button type="button" @onclick="AddChore" class="btn btn-primary">Primary</button>
+    </div>
 </ul>
 
-
 @code {
-    private static Guid userId = Guid.NewGuid();
-    private List<Chore> Chores = new List<Chore>(){
-        new Chore(){UserId=userId,Name="Chore 1",Id=1},
-        new Chore(){UserId=userId,Name="Chore 2",Id=2}
-        };
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
 
-    private List<Domain> Domains = new List<Domain>(){
-        new Domain(){UserId=userId,Name="Domain 1",Id=1},
-        new Domain(){UserId=userId,Name="Domain 2",Id=2}
-        };
+    private Guid userId;
 
-    private List<ChoreDomain> ChoreDomains = new List<ChoreDomain>(){
-        new ChoreDomain(){UserId=userId,ChoreId=1,DomainId=1},
-        new ChoreDomain(){UserId=userId,ChoreId=2,DomainId=1,Intensity=3},
-        new ChoreDomain(){UserId=userId,ChoreId=2,DomainId=2}
+    private ICollection<Domain> domains = [];
+    private ICollection<Chore> chores = [];
+    private ICollection<ChoreDomain> choreDomains = [];
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateTask).User;
+        string userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        userId = Guid.Parse(userIdString);
+
+        chores = await choreRepository.GetChoresAsync(userId);
+        await base.OnInitializedAsync();
+    }
+    public async Task AddChore()
+    {
+        Chore chore = new Chore()
+        {
+            UserId = userId,
+            Name = "Choose"
         };
+        chore = await choreRepository.CreateChoreAsync(chore);
+        chores.Add(chore);
+    }
 
     public void RemoveLink(Chore chore, Domain domain)
     {
-        ChoreDomains.RemoveAll(cd => matches(cd, chore, domain));
+        @* ChoreDomains.RemoveAll(cd => matches(cd, chore, domain)); *@
     }
     public void AddLink(Chore chore, Domain domain)
     {
         //TODO faire gaffe int casting
-        ChoreDomains.Add(new() { ChoreId = (int)chore.Id, DomainId = (int)domain.Id, UserId = chore.UserId });
+        @* ChoreDomains.Add(new() { ChoreId = (int)chore.Id, DomainId = (int)domain.Id, UserId = chore.UserId }); *@
     }
 
     private bool matches(ChoreDomain choreDomain, Chore chore, Domain domain)
     {
-        return choreDomain.ChoreId == chore.Id && choreDomain.DomainId == domain.Id;
+        return false;
+        @* return choreDomain.ChoreId == chore.Id && choreDomain.DomainId == domain.Id; *@
     }
 
 }

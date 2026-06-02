@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TimeSight.Models;
+using TimeSight.SupabaseClient.Models;
+
+namespace TimeSight.Extensions;
+
+public static class SupabaseChoreExtensions
+{
+    public static Chore ToChore(this SupabaseChore supabaseChore)
+    {
+        return new Chore
+        {
+            Id = supabaseChore.Id,
+            UserId = supabaseChore.UserId,
+            Name = supabaseChore.Name,
+            IsDone = supabaseChore.IsDone,
+            Significance = supabaseChore.Significance,
+            Duration = supabaseChore.Duration,
+            DoneAt = supabaseChore.DoneAt,
+        };
+    }
+}

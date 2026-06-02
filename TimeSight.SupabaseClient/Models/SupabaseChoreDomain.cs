@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace TimeSight.SupabaseClient.Models;
 
+[Table("chore_domain")]
 public class SupabaseChoreDomain : BaseModel
 {
     public required Guid UserId { get; set; }

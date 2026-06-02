@@ -9,6 +9,6 @@ public class Domain
 {
     public required Guid UserId { get; set; }
     public required string Name { get; set; }
-    public int? Id { get; set; }
+    public Guid? Id { get; set; }
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
 }

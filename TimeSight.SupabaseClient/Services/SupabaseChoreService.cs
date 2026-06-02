@@ -9,9 +9,26 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseChoreService(Client supabase)
 {
+    public async Task<SupabaseChore> CreateChore(SupabaseChore supabaseChore)
+    {
+        var response = await supabase.From<SupabaseChore>().Insert(supabaseChore);
+        return response.Model;
+    }
     public async Task<ICollection<SupabaseChore>> GetChores(Guid userId)
     {
-        // string userId = "84fd300b-ed96-4f89-b757-f2dfc3946757";
+        string userIdString = userId.ToString();
+        var response = await supabase.From<SupabaseChore>()
+            .Filter("user_id", Operator.Equals, userIdString)
+            .Select(@"
+                *,
+                chore_domain:SupabaseChoreDomains!inner(
+                    *,
+                    domain!inner(*)
+                )
+            ")
+            .Filter("TestDomain.user_id", Operator.Equals, userIdString)
+            .Get();
+        return response.Models;
         // var response = await supabase.From<Chore>()
         //     .Filter("user_id", Operator.Equals, userId)
         //     .Select(@"
@@ -25,6 +42,5 @@ public class SupabaseChoreService(Client supabase)
         //     .Get();
         // var stringR = response.Content;
         // return response.Models;
-        return null;
     }
 }

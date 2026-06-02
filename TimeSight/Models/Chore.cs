@@ -13,7 +13,7 @@ public class Chore
     /// <summary>
     /// Id from database
     /// </summary>
-    public int? Id { get; set; }
+    public Guid? Id { get; set; }
     public bool IsDone { get; set; } = false;
 
     /// <summary>
@@ -27,7 +27,7 @@ public class Chore
 
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
 
-    public DateTime? DoneDate { get; set; }
+    public DateTime? DoneAt { get; set; }
 
     // public DateTime? ScheduledStartDate { get; set; }
     // public DateTime? ScheduledEndDate { get; set; }

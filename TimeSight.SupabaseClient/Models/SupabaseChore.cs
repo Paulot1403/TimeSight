@@ -1,37 +1,47 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace TimeSight.SupabaseClient.Models;
 
+
+[Table("chores")]
 public class SupabaseChore : BaseModel
 {
-    public required Guid UserId { get; set; }
-    public required string Name { get; set; }
+    [Column("user_id")]
+    public Guid UserId { get; set; }
+
+    [Column("name")]
+    public string? Name { get; set; }
 
     /// <summary>
     /// Id from database
     /// </summary>
-    ///
-    [PrimaryKey]
-    public int? Id { get; set; }
+    /// 
+    [PrimaryKey("id", false)]
+    public Guid? Id { get; set; }
+
+    [Column("is_done")]
     public bool IsDone { get; set; } = false;
 
     /// <summary>
     /// De 1 à 4 ?
     /// </summary>
+    ///     
+    [Column("significance")]
     public int? Significance { get; set; }
     /// <summary>
     /// De 1 à 4 ?
     /// </summary>
+    ///     
+    [Column("duration")]
     public int? Duration { get; set; }
 
-    public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
+    [Column("done_at")]
+    public DateTime? DoneAt { get; set; }
 
-    public DateTime? DoneDate { get; set; }
+    public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
+    public bool ShouldSerializeSupabaseChoreDomains() => false;
+
 
     // public DateTime? ScheduledStartDate { get; set; }
     // public DateTime? ScheduledEndDate { get; set; }
