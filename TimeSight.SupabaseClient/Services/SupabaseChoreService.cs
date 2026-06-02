@@ -18,17 +18,26 @@ public class SupabaseChoreService(Client supabase)
     {
         string userIdString = userId.ToString();
         var response = await supabase.From<SupabaseChore>()
-            .Filter("user_id", Operator.Equals, userIdString)
             .Select(@"
                 *,
-                chore_domain:SupabaseChoreDomains!inner(
+                SupabaseChoreDomains:chore_domain(
                     *,
-                    domain!inner(*)
+                    Domain:domains(*)
                 )
             ")
-            .Filter("TestDomain.user_id", Operator.Equals, userIdString)
             .Get();
         return response.Models;
+
+        // var response = await supabase.From<SupabaseChore>()
+        //     .Select(@"
+        //         *,
+        //         SupabaseChoreDomains:chore_domain!inner(
+        //             *,
+        //             Domain:domains!inner(*)
+        //         )
+        //     ")
+        //     .Get();
+
         // var response = await supabase.From<Chore>()
         //     .Filter("user_id", Operator.Equals, userId)
         //     .Select(@"
