@@ -6,22 +6,38 @@
 @attribute [Authorize]
 @inject NavigationManager navigationManager
 @inject IDomainRepository domainRepository
-<button type="button" class="btn btn-primary" @onclick="AddDomain">Add domain</button>
-<QuickGrid Items="domains.AsQueryable()">
-    <PropertyColumn Property="d => d.Id" />
-    <PropertyColumn Property="d => d.Name" />
-    <TemplateColumn>
-        <button type="button" class="btn btn-primary" @onclick="() => EditDomain(context)"> Edit
 
-        </button>
-    </TemplateColumn>
+<PageTitle>Domains — TimeSight</PageTitle>
 
-    <TemplateColumn>
-        <button type="button" class="btn btn-danger" @onclick="() => DeleteDomain(context)"> Delete
+<div class="domains-wrap">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Domains</h1>
+            <p class="page-subtitle">Categories for your tasks</p>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn btn-primary" @onclick="AddDomain">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New domain
+            </button>
+        </div>
+    </div>
 
-        </button>
-    </TemplateColumn>
-</QuickGrid>
+    <div class="domains-grid-wrap">
+        <QuickGrid Items="domains.AsQueryable()">
+            <PropertyColumn Property="d => d.Name" Title="Name" />
+            <TemplateColumn Title="Actions">
+                <div style="display:flex;gap:0.4rem;">
+                    <button type="button" class="btn btn-ghost" @onclick="() => EditDomain(context)">Edit</button>
+                    <button type="button" class="btn btn-danger" @onclick="() => DeleteDomain(context)">Delete</button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+</div>
 
 @code {
     [CascadingParameter]

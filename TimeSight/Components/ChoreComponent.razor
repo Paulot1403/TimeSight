@@ -3,57 +3,68 @@
 
 @if (Chore == null)
 {
-    <text>Chore est null</text>
+    <li class="chore-skeleton"></li>
 }
 else
 {
-    <li>
-        <div class="row">
-            <div class="form-check col-2">
-                <input class="form-check-input" type="checkbox" value="" id="checkDefault">
-                <label class="form-check-label" for="checkDefault">
-                    IsDone
-                </label>
-            </div>
-            <div class="test col-2">
-                @Chore.Name
-            </div>
-            <div class="col-2">
-                <label for="range2" class="form-label">Significance</label>
-                <input type="range" class="form-range " min="1" max="4" @bind="Chore.Significance" @bind:event="oninput"
-                       id="range2">
-            </div>
-            <div class="col-2">
-                <label for="range2" class="form-label">Duration</label>
-                <input type="range" class="form-range " min="1" max="4" @bind="Chore.Duration" @bind:event="oninput"
-                       id="range2">
+    <li class="chore-card">
+        <div class="chore-inner">
+
+            <div class="chore-check-wrap">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="check-@Chore.Id">
+                </div>
             </div>
 
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                    Dropdown button
-                </button>
-                <ul class="dropdown-menu">
-                    @foreach (var domain in domainsNotSelected)
+            <div class="chore-body">
+                <span class="chore-name">@Chore.Name</span>
+                <div class="chore-tags">
+                    @foreach (var domain in domainsSelected)
                     {
-                        <li><a class="dropdown-item" @onclick="() => AddLink(Chore, domain)">@domain.Name</a></li>
+                        <button type="button" class="domain-tag" @onclick="() => RemoveLink(Chore, domain)">
+                            @domain.Name<span class="domain-tag-x">×</span>
+                        </button>
                     }
-
-                </ul>
+                    <div class="dropdown">
+                        <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            + domain
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach (var domain in domainsNotSelected)
+                            {
+                                <li><a class="dropdown-item" @onclick="() => AddLink(Chore, domain)">@domain.Name</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <div class="btn-group col-2" role="group" aria-label="Basic example">
-                @foreach (var domain in domainsSelected)
-                {
-                    <button type="button" class="btn btn-primary"
-                            @onclick="() => RemoveLink(Chore, domain)">@domain.Name</button>
+            <div class="chore-metrics">
+                <div class="metric">
+                    <span class="metric-label">Impact</span>
+                    <div class="metric-row">
+                        <span class="metric-val">@Chore.Significance</span>
+                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Significance" @bind:event="oninput" id="sig-@Chore.Id">
+                    </div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Duration</span>
+                    <div class="metric-row">
+                        <span class="metric-val">@Chore.Duration</span>
+                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Duration" @bind:event="oninput" id="dur-@Chore.Id">
+                    </div>
+                </div>
+            </div>
 
-                }
-            </div>
-            <div class="col-2">
-                <button class="btn btn-danger" @onclick="Delete">Delete</button>
-            </div>
+            <button class="btn-delete-chore" @onclick="Delete" title="Delete task">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                </svg>
+            </button>
+
         </div>
     </li>
 }
