@@ -20,6 +20,7 @@ public static class SupabaseChoreExtensions
             Significance = supabaseChore.Significance,
             Duration = supabaseChore.Duration,
             DoneAt = supabaseChore.DoneAt,
+            ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };
     }
 }

@@ -3,12 +3,17 @@ using Supabase.Postgrest.Models;
 
 namespace TimeSight.SupabaseClient.Models;
 
-[Table("domain")]
+[Table("domains")]
 public class SupabaseDomain : BaseModel
 {
-    public required Guid UserId { get; set; }
-    public required string Name { get; set; }
-    [PrimaryKey]
+    [Column("user_id")]
+    public Guid UserId { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
+    [PrimaryKey("id", false)]
     public Guid? Id { get; set; }
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
+
+    public bool ShouldSerializeSupabaseChoreDomains() => false;
+
 }

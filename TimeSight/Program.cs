@@ -18,6 +18,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IChoreRepository, SupabaseChoreRepository>();
+builder.Services.AddSingleton<IDomainRepository, SupabaseDomainRepository>();
 
 builder.Services.AddSupabase().Configure(options =>
 {

@@ -30,7 +30,7 @@
         switch (Action)
         {
             case "logout":
-                await authService.SignOut();
+                await authService.SignOutAsync();
                 Navigation.NavigateTo("/authentication/logged-out");
                 break;
             case "callback":
@@ -54,7 +54,7 @@
         {
             var verifier = await JS.InvokeAsync<string?>("sessionStorage.getItem", "pkce_verifier");
             await JS.InvokeVoidAsync("sessionStorage.removeItem", "pkce_verifier");
-            await authService.SignInWithCode(verifier ?? "", code);
+            await authService.SignInWithCodeAsync(verifier ?? "", code);
             Navigation.NavigateTo("/");
         }
         catch

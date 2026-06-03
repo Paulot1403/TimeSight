@@ -9,14 +9,13 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseChoreService(Client supabase)
 {
-    public async Task<SupabaseChore> CreateChore(SupabaseChore supabaseChore)
+    public async Task<SupabaseChore> CreateChoreAsync(SupabaseChore supabaseChore)
     {
         var response = await supabase.From<SupabaseChore>().Insert(supabaseChore);
         return response.Model;
     }
-    public async Task<ICollection<SupabaseChore>> GetChores(Guid userId)
+    public async Task<ICollection<SupabaseChore>> GetChoresAsync()
     {
-        string userIdString = userId.ToString();
         var response = await supabase.From<SupabaseChore>()
             .Select(@"
                 *,
@@ -27,29 +26,5 @@ public class SupabaseChoreService(Client supabase)
             ")
             .Get();
         return response.Models;
-
-        // var response = await supabase.From<SupabaseChore>()
-        //     .Select(@"
-        //         *,
-        //         SupabaseChoreDomains:chore_domain!inner(
-        //             *,
-        //             Domain:domains!inner(*)
-        //         )
-        //     ")
-        //     .Get();
-
-        // var response = await supabase.From<Chore>()
-        //     .Filter("user_id", Operator.Equals, userId)
-        //     .Select(@"
-        //         *,
-        //         TestDomains:TestDomain!inner(
-        //             *,
-        //             Domain!inner(*)
-        //         )
-        //     ")
-        //     .Filter("TestDomain.user_id", Operator.Equals, userId)
-        //     .Get();
-        // var stringR = response.Content;
-        // return response.Models;
     }
 }

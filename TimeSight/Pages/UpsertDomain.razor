@@ -1,0 +1,30 @@
+@page "/domains/create"
+@page "/domains/edit/{id:guid}"
+
+@inject NavigationManager navigationManager
+
+<EditForm Model="domain" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText @bind-Value="domain.Name"></InputText>
+    <ValidationMessage for="() => domain.Name" />
+    <button type="submit" class="btn btn-primary">Update</button>
+</EditForm>
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private Domain? domain = new Domain() { UserId = Guid.NewGuid(), Name = "hello" };
+
+    public void Submit()
+    {
+        navigationManager.NavigateTo("/domains");
+    }
+    protected override Task OnParametersSetAsync()
+    {
+        //TODO
+        return base.OnParametersSetAsync();
+    }
+
+}

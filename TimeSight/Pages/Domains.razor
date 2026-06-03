@@ -1,0 +1,52 @@
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using TimeSight.repositories
+@using System.Security.Claims
+@page "/domains"
+
+@attribute [Authorize]
+@inject NavigationManager navigationManager
+@inject IDomainRepository domainRepository
+<button type="button" class="btn btn-primary" @onclick="AddDomain">Add domain</button>
+<QuickGrid Items="domains.AsQueryable()">
+    <PropertyColumn Property="d => d.Id" />
+    <PropertyColumn Property="d => d.Name" />
+    <TemplateColumn>
+        <button type="button" class="btn btn-primary" @onclick="() => EditDomain(context)"> Edit
+
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
+    private ICollection<Domain> domains = [];
+    private Guid userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateTask).User;
+        string userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        userId = Guid.Parse(userIdString);
+
+        domains = await domainRepository.GetDomainsAsync();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task AddDomain()
+    {
+        navigationManager.NavigateTo("/domains/create/");
+        @* Domain domain = new Domain()
+        {
+            UserId = userId,
+            Name = "Domain"
+        };
+        domain = await domainRepository.CreateDomainAsync(domain);
+        domains.Add(domain); *@
+    }
+
+    public async Task EditDomain(Domain domain)
+    {
+        navigationManager.NavigateTo($"/domains/edit/{domain.Id}");
+    }
+}

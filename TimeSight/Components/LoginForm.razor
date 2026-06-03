@@ -46,7 +46,7 @@
         _loading = true;
         try
         {
-            await authService.SignIn(_model.Email, _model.Password);
+            await authService.SignInAsync(_model.Email, _model.Password);
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)
@@ -65,7 +65,7 @@
         _loading = true;
         try
         {
-            SignInInfo? signInInfo = await authService.GetSignInInfoForProvider(
+            SignInInfo? signInInfo = await authService.GetSignInInfoForProviderAsync(
                     Constants.Provider.Github,
                      Navigation.BaseUri + "authentication/callback");
 
