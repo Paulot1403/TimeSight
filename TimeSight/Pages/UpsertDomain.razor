@@ -1,6 +1,9 @@
+@using TimeSight.repositories
+
 @page "/domains/create"
 @page "/domains/edit/{id:guid}"
-@using TimeSight.repositories
+
+@attribute [Authorize]
 
 @inject NavigationManager navigationManager
 @inject IDomainRepository domainRepository
@@ -14,6 +17,9 @@
     <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
 </EditForm>
 @code {
+    [CascadingParameter(Name = "UserId")]
+    public Guid? UserId { get; set; }
+
     [Parameter]
     public Guid? Id { get; set; }
 
@@ -23,7 +29,7 @@
     {
         if (Id != null)
         {
-            //TODO : update
+            //TODO update
         }
         else
         {
@@ -31,18 +37,38 @@
         }
         navigationManager.NavigateTo(uri: "/domains");
     }
-    protected override Task OnParametersSetAsync()
+
+    protected override void OnInitialized()
     {
+        Console.WriteLine("OnInitialized " + Guid.NewGuid());
+
+        base.OnInitialized();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Console.WriteLine("OnAfterRender " + Guid.NewGuid());
+
+        base.OnAfterRender(firstRender);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Console.WriteLine("OnParametersSetAsync " + Guid.NewGuid());
+
+        if (UserId == null)
+            throw new ArgumentException("UserId est null");
+
+
         if (Id != null)
         {
-            //TODO
-
+            domain = await domainRepository.GetDomainAsync(Id.Value);
         }
         else
         {
-            domain = new Domain() { UserId = Guid.NewGuid(), Name = "" };
+            domain = new Domain() { UserId = (Guid)UserId, Name = "" };
         }
-        return base.OnParametersSetAsync();
+        await base.OnParametersSetAsync();
     }
 
 }

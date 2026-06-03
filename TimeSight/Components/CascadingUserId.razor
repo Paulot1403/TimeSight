@@ -1,0 +1,28 @@
+@using System.Security.Claims
+
+
+<CascadingValue Value="_userId" Name="UserId">
+    @ChildContent
+</CascadingValue>
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private Guid? _userId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AuthStateTask is not null)
+        {
+            var user = (await AuthStateTask).User;
+            var raw = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(raw, out var id))
+                _userId = id;
+        }
+    }
+}

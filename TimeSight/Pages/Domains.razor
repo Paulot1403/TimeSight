@@ -19,16 +19,12 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState>? AuthStateTask { get; set; }
+    public Guid UserId { get; set; }
+
     private ICollection<Domain> domains = [];
-    private Guid userId;
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthStateTask).User;
-        string userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        userId = Guid.Parse(userIdString);
-
         domains = await domainRepository.GetDomainsAsync();
         await base.OnInitializedAsync();
     }

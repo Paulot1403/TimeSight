@@ -18,6 +18,12 @@ public class SupabaseDomainRepository(SupabaseDomainService supabaseDomainServic
         return supabaseDomain.ToDomain();
     }
 
+    public async Task<Domain> GetDomainAsync(Guid domainId)
+    {
+        SupabaseDomain supabaseDomain = await supabaseDomainService.GetDomainAsync(domainId);
+        return supabaseDomain.ToDomain();
+    }
+
     public async Task<ICollection<Domain>> GetDomainsAsync()
     {
         var supabaseDomains = await supabaseDomainService.GetDomainsAsync();

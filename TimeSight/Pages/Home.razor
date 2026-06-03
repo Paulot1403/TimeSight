@@ -26,21 +26,15 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState>? AuthStateTask { get; set; }
-
-    private Guid userId;
+    public Guid UserId { get; set; }
 
     private ICollection<Domain> domains = [];
     private ICollection<Chore> chores = [];
     private ICollection<ChoreDomain> choreDomains = [];
 
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        var user = (await AuthStateTask).User;
-        string userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        userId = Guid.Parse(userIdString);
-
         chores = await choreRepository.GetChoresAsync();
         await base.OnInitializedAsync();
     }
@@ -48,7 +42,7 @@
     {
         Chore chore = new Chore()
         {
-            UserId = userId,
+            UserId = UserId,
             Name = "Choose"
         };
         chore = await choreRepository.CreateChoreAsync(chore);
