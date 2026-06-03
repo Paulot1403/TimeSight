@@ -1,7 +1,9 @@
 @page "/domains/create"
 @page "/domains/edit/{id:guid}"
+@using TimeSight.repositories
 
 @inject NavigationManager navigationManager
+@inject IDomainRepository domainRepository
 
 <EditForm Model="domain" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
@@ -9,21 +11,37 @@
 
     <InputText @bind-Value="domain.Name"></InputText>
     <ValidationMessage for="() => domain.Name" />
-    <button type="submit" class="btn btn-primary">Update</button>
+    <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
 </EditForm>
 @code {
     [Parameter]
     public Guid? Id { get; set; }
 
-    private Domain? domain = new Domain() { UserId = Guid.NewGuid(), Name = "hello" };
+    private Domain? domain;
 
-    public void Submit()
+    public async Task Submit()
     {
-        navigationManager.NavigateTo("/domains");
+        if (Id != null)
+        {
+            //TODO : update
+        }
+        else
+        {
+            await domainRepository.CreateDomainAsync(domain);
+        }
+        navigationManager.NavigateTo(uri: "/domains");
     }
     protected override Task OnParametersSetAsync()
     {
-        //TODO
+        if (Id != null)
+        {
+            //TODO
+
+        }
+        else
+        {
+            domain = new Domain() { UserId = Guid.NewGuid(), Name = "" };
+        }
         return base.OnParametersSetAsync();
     }
 
