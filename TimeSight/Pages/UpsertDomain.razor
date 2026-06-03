@@ -8,14 +8,17 @@
 @inject NavigationManager navigationManager
 @inject IDomainRepository domainRepository
 
-<EditForm Model="domain" OnValidSubmit="Submit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (domain != null)
+{
+    <EditForm Model="domain" OnValidSubmit="Submit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <InputText @bind-Value="domain.Name"></InputText>
-    <ValidationMessage for="() => domain.Name" />
-    <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
-</EditForm>
+        <InputText @bind-Value="domain.Name"></InputText>
+        <ValidationMessage for="() => domain.Name" />
+        <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
+    </EditForm>
+}
 @code {
     [CascadingParameter(Name = "UserId")]
     public Guid? UserId { get; set; }
@@ -38,24 +41,8 @@
         navigationManager.NavigateTo(uri: "/domains");
     }
 
-    protected override void OnInitialized()
-    {
-        Console.WriteLine("OnInitialized " + Guid.NewGuid());
-
-        base.OnInitialized();
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        Console.WriteLine("OnAfterRender " + Guid.NewGuid());
-
-        base.OnAfterRender(firstRender);
-    }
-
     protected override async Task OnParametersSetAsync()
     {
-        Console.WriteLine("OnParametersSetAsync " + Guid.NewGuid());
-
         if (UserId == null)
             throw new ArgumentException("UserId est null");
 
