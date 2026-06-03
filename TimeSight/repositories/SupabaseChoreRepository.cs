@@ -16,7 +16,7 @@ public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) 
         ICollection<SupabaseChore> supabaseChores = await supabaseChoreService.GetChoresAsync();
         return [.. supabaseChores.Select(sc =>
         {
-            return new Chore() { UserId = sc.UserId, Name = sc.Name };
+            return sc.ToChore();
         })];
 
     }
@@ -28,6 +28,18 @@ public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) 
         SupabaseChore newSupabaseChore = await supabaseChoreService.CreateChoreAsync(supabaseChore);
 
         return newSupabaseChore.ToChore();
+    }
+    public async Task<Chore> UpdateChoreAsync(Chore chore)
+    {
+        SupabaseChore supabaseChore = chore.ToSupabaseChore();
+
+        SupabaseChore newSupabaseChore = await supabaseChoreService.UpdateChoreAsync(supabaseChore);
+
+        return newSupabaseChore.ToChore();
+    }
+    public async Task DeleteChoreAsync(Guid choreId)
+    {
+        await supabaseChoreService.DeleteChoreAsync(choreId);
     }
 
 

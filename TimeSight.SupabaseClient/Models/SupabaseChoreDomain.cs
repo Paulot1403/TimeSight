@@ -11,8 +11,8 @@ namespace TimeSight.SupabaseClient.Models;
 public class SupabaseChoreDomain : BaseModel
 {
     public required Guid UserId { get; set; }
-    public required int ChoreId { get; set; }
-    public required int DomainId { get; set; }
+    public required Guid ChoreId { get; set; }
+    public required Guid DomainId { get; set; }
     public int Intensity { get; set; } = 2;
 
     public SupabaseChore? Chore { get; set; } = null!;

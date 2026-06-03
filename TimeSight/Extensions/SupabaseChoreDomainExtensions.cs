@@ -11,7 +11,7 @@ public static class SupabaseChoreDomainExtensions
 {
     public static ChoreDomain ToChoreDomain(this SupabaseChoreDomain supabaseChoreDomain)
     {
-        return new()
+        return new ChoreDomain()
         {
             UserId = supabaseChoreDomain.UserId,
             ChoreId = supabaseChoreDomain.ChoreId,

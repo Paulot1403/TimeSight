@@ -12,4 +12,8 @@ public interface IChoreRepository
 
     Task<Chore> CreateChoreAsync(Chore chore);
 
+    Task<Chore> UpdateChoreAsync(Chore chore);
+
+
+    Task DeleteChoreAsync(Guid choreId);
 }

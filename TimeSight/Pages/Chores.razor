@@ -1,0 +1,65 @@
+﻿@using TimeSight.repositories
+@using System.Security.Claims
+
+@page "/"
+
+@attribute [Authorize]
+@inject IChoreRepository choreRepository;
+@inject IDomainRepository domainRepository;
+
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<button type="button" class="btn btn-primary" @onclick="Order">Order</button>
+
+
+<ul class="container text-center list-unstyled">
+    @foreach (var chore in chores)
+    {
+        <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains"></ChoreComponent>
+    }
+    <div class="row">
+        <button type="button" @onclick="AddChore" class="btn btn-primary">Primary</button>
+    </div>
+</ul>
+
+@code {
+    [CascadingParameter(Name = "UserId")]
+    public Guid? UserId { get; set; }
+
+    private ICollection<Domain> domains = [];
+    private ICollection<Chore> chores = [];
+    private ICollection<ChoreDomain> choreDomains = [];
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        chores = await choreRepository.GetChoresAsync();
+        domains = await domainRepository.GetDomainsAsync();
+        await base.OnInitializedAsync();
+    }
+    public async Task HandleDelete(Chore chore)
+    {
+        ArgumentNullException.ThrowIfNull(chore.Id);
+        await choreRepository.DeleteChoreAsync(chore.Id.Value);
+        chores.Remove(chore);
+    }
+
+    public async Task AddChore()
+    {
+        Chore chore = new Chore()
+        {
+            UserId = UserId.Value,
+            Name = "Choose"
+        };
+        chore = await choreRepository.CreateChoreAsync(chore);
+        chores.Add(chore);
+    }
+
+
+    public void Order()
+    { }
+
+}

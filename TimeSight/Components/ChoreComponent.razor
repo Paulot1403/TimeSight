@@ -1,3 +1,6 @@
+@using TimeSight.repositories
+@inject IChoreRepository choreRepository
+
 @if (Chore == null)
 {
     <text>Chore est null</text>
@@ -32,7 +35,7 @@ else
                     Dropdown button
                 </button>
                 <ul class="dropdown-menu">
-                    @foreach (var domain in domains)
+                    @foreach (var domain in domainsNotSelected)
                     {
                         <li><a class="dropdown-item" @onclick="() => AddLink(Chore, domain)">@domain.Name</a></li>
                     }
@@ -41,14 +44,16 @@ else
             </div>
 
             <div class="btn-group col-2" role="group" aria-label="Basic example">
-                @foreach (var domain in domains)
+                @foreach (var domain in domainsSelected)
                 {
                     <button type="button" class="btn btn-primary"
                             @onclick="() => RemoveLink(Chore, domain)">@domain.Name</button>
 
                 }
             </div>
-
+            <div class="col-2">
+                <button class="btn btn-danger" @onclick="Delete">Delete</button>
+            </div>
         </div>
     </li>
 }
@@ -58,21 +63,39 @@ else
     [Parameter]
     public Chore? Chore { get; set; }
 
-    private ICollection<Domain>? domains => Chore?.ChoreDomains?.Select(cd => cd.Domain!)?.ToList();
+    [Parameter]
+    public EventCallback<Chore> OnDelete { get; set; }
 
-    public void RemoveLink(Chore chore, Domain domain)
+    [Parameter]
+    public ICollection<Domain>? allDomains { get; set; }
+    private ICollection<Domain>? domainsSelected => Chore?.ChoreDomains?.Select(cd => cd.Domain!)?.ToList();
+    private ICollection<Domain>? domainsNotSelected => allDomains?.Except(domainsSelected).ToList();
+
+
+    protected override void OnParametersSet()
     {
-        @* ChoreDomains.RemoveAll(cd => matches(cd, chore, domain)); *@
+        allDomains ??= [];
     }
-    public void AddLink(Chore chore, Domain domain)
+    public async Task RemoveLink(Chore chore, Domain domain)
     {
-        //TODO faire gaffe int casting
-        @* ChoreDomains.Add(new() { ChoreId = (int)chore.Id, DomainId = (int)domain.Id, UserId = chore.UserId }); *@
+        chore.ChoreDomains.RemoveAll(cd => matches(cd, chore, domain));
+        await choreRepository.UpdateChoreAsync(chore);
+    }
+    public async Task AddLink(Chore chore, Domain domain)
+    {
+        ChoreDomain choreDomain = new ChoreDomain(chore, domain);
+
+        chore.ChoreDomains.Add(choreDomain);
+        await choreRepository.UpdateChoreAsync(chore);
     }
 
+    public async Task Delete()
+    {
+        ArgumentNullException.ThrowIfNull(Chore?.Id);
+        await OnDelete.InvokeAsync(Chore);
+    }
     private bool matches(ChoreDomain choreDomain, Chore chore, Domain domain)
     {
-        return false;
-        @* return choreDomain.ChoreId == chore.Id && choreDomain.DomainId == domain.Id; *@
+        return choreDomain.ChoreId == chore.Id.Value && choreDomain.DomainId == domain.Id.Value;
     }
 }

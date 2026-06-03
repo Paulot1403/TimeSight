@@ -9,12 +9,6 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseDomainService(Client supabase)
 {
-    public async Task<SupabaseDomain> CreateDomainAsync(SupabaseDomain supabaseDomain)
-    {
-        var response = await supabase.From<SupabaseDomain>().Insert(supabaseDomain);
-        ArgumentNullException.ThrowIfNull(response.Model);
-        return response.Model;
-    }
     public async Task<ICollection<SupabaseDomain>> GetDomainsAsync()
     {
         var response = await supabase.From<SupabaseDomain>()
@@ -35,5 +29,24 @@ public class SupabaseDomainService(Client supabase)
             .Get();
         ArgumentNullException.ThrowIfNull(response.Model);
         return response.Model;
+    }
+    public async Task<SupabaseDomain> CreateDomainAsync(SupabaseDomain supabaseDomain)
+    {
+        var response = await supabase.From<SupabaseDomain>().Insert(supabaseDomain);
+        ArgumentNullException.ThrowIfNull(response.Model);
+        return response.Model;
+    }
+
+    public async Task<SupabaseDomain> UpdateDomainAsync(SupabaseDomain supabaseDomain)
+    {
+        var response = await supabase.From<SupabaseDomain>().Update(supabaseDomain);
+        ArgumentNullException.ThrowIfNull(response.Model);
+        return response.Model;
+    }
+    public async Task DeleteDomainAsync(Guid domainId)
+    {
+        await supabase.From<SupabaseDomain>()
+            .Where(d => d.Id == domainId)
+            .Delete();
     }
 }

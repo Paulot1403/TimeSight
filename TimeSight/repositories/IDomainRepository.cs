@@ -5,9 +5,11 @@ namespace TimeSight.repositories;
 public interface IDomainRepository
 {
     Task<ICollection<Domain>> GetDomainsAsync();
+    Task<Domain> GetDomainAsync(Guid domainId);
 
     Task<Domain> CreateDomainAsync(Domain domain);
+    Task<Domain> UpdateDomainAsync(Domain domain);
 
-    Task<Domain> GetDomainAsync(Guid domainId);
+    Task DeleteDomainAsync(Guid domainId);
 
 }

@@ -9,11 +9,6 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseChoreService(Client supabase)
 {
-    public async Task<SupabaseChore> CreateChoreAsync(SupabaseChore supabaseChore)
-    {
-        var response = await supabase.From<SupabaseChore>().Insert(supabaseChore);
-        return response.Model;
-    }
     public async Task<ICollection<SupabaseChore>> GetChoresAsync()
     {
         var response = await supabase.From<SupabaseChore>()
@@ -27,4 +22,22 @@ public class SupabaseChoreService(Client supabase)
             .Get();
         return response.Models;
     }
+    public async Task<SupabaseChore> CreateChoreAsync(SupabaseChore supabaseChore)
+    {
+        var response = await supabase.From<SupabaseChore>().Insert(supabaseChore);
+        return response.Model;
+    }
+    public async Task<SupabaseChore> UpdateChoreAsync(SupabaseChore supabaseChore)
+    {
+        var response = await supabase.From<SupabaseChore>().Update(supabaseChore);
+        return response.Model;
+    }
+    public async Task DeleteChoreAsync(Guid choreId)
+    {
+        await supabase.From<SupabaseChore>()
+            .Where(c => c.Id == choreId)
+            .Delete();
+    }
+
+
 }

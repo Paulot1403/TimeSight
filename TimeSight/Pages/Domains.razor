@@ -15,6 +15,12 @@
 
         </button>
     </TemplateColumn>
+
+    <TemplateColumn>
+        <button type="button" class="btn btn-danger" @onclick="() => DeleteDomain(context)"> Delete
+
+        </button>
+    </TemplateColumn>
 </QuickGrid>
 
 @code {
@@ -39,6 +45,12 @@
         };
         domain = await domainRepository.CreateDomainAsync(domain);
         domains.Add(domain); *@
+    }
+
+    public async Task DeleteDomain(Domain domain)
+    {
+        await domainRepository.DeleteDomainAsync(domain.Id!.Value);
+        domains.Remove(domain);
     }
 
     public async Task EditDomain(Domain domain)

@@ -10,13 +10,24 @@
 
 @if (domain != null)
 {
+
     <EditForm Model="domain" OnValidSubmit="Submit">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <InputText @bind-Value="domain.Name"></InputText>
-        <ValidationMessage for="() => domain.Name" />
-        <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
+        <div class="container">
+            <div class="row">
+                <div class="input-group">
+                    <label for="domain-name">Name</label>
+                    <InputText class="form-control" id="domain-name" @bind-Value="domain.Name"></InputText>
+                    <ValidationMessage for="() => domain.Name" />
+                </div>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn btn-primary">@(Id != null ? "Update" : "Create")</button>
+            </div>
+        </div>
+
     </EditForm>
 }
 @code {
@@ -30,13 +41,15 @@
 
     public async Task Submit()
     {
+        ArgumentNullException.ThrowIfNull(domain);
+
         if (Id != null)
         {
-            //TODO update
+            domain = await domainRepository.UpdateDomainAsync(domain);
         }
         else
         {
-            await domainRepository.CreateDomainAsync(domain);
+            domain = await domainRepository.CreateDomainAsync(domain);
         }
         navigationManager.NavigateTo(uri: "/domains");
     }
