@@ -71,7 +71,7 @@
         try
         {
             await authService.SignInAsync(_model.Email, _model.Password);
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo(Navigation.BaseUri);
         }
         catch (Exception ex)
         {

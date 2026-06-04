@@ -56,7 +56,7 @@
             var verifier = await JS.InvokeAsync<string?>("sessionStorage.getItem", "pkce_verifier");
             await JS.InvokeVoidAsync("sessionStorage.removeItem", "pkce_verifier");
             await authService.SignInWithCodeAsync(verifier ?? "", code);
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo(Navigation.BaseUri);
         }
         catch
         {
