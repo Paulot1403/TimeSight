@@ -32,7 +32,7 @@
         {
             case "logout":
                 await authService.SignOutAsync();
-                Navigation.NavigateTo("/authentication/logged-out");
+                Navigation.NavigateToRelative("authentication/logged-out");
                 break;
             case "callback":
                 await HandleOAuthCallback();
@@ -47,7 +47,7 @@
 
         if (code is null)
         {
-            Navigation.NavigateTo("/authentication/login");
+            Navigation.NavigateToRelative("authentication/login");
             return;
         }
 
@@ -60,7 +60,7 @@
         }
         catch
         {
-            Navigation.NavigateTo("/authentication/login");
+            Navigation.NavigateToRelative("authentication/login");
         }
     }
 

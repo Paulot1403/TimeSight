@@ -41,7 +41,7 @@
                 <button type="submit" class="btn btn-primary">
                     @(Id != null ? "Save changes" : "Create domain")
                 </button>
-                <button type="button" class="btn btn-ghost" @onclick='() => navigationManager.NavigateTo("/domains")'>
+                <button type="button" class="btn btn-ghost" @onclick='() => navigationManager.NavigateToRelative("domains")'>
                     Cancel
                 </button>
             </div>
@@ -69,7 +69,7 @@
         {
             domain = await domainRepository.CreateDomainAsync(domain);
         }
-        navigationManager.NavigateTo(uri: "/domains");
+        navigationManager.NavigateToRelative("domains");
     }
 
     protected override async Task OnParametersSetAsync()

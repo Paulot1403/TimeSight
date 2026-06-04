@@ -58,7 +58,7 @@
 
     public async Task AddDomain()
     {
-        navigationManager.NavigateTo("/domains/create/");
+        navigationManager.NavigateToRelative("domains/create");
         @* Domain domain = new Domain()
         {
             UserId = userId,
@@ -76,6 +76,6 @@
 
     public async Task EditDomain(Domain domain)
     {
-        navigationManager.NavigateTo($"/domains/edit/{domain.Id}");
+        navigationManager.NavigateToRelative($"domains/edit/{domain.Id}");
     }
 }
