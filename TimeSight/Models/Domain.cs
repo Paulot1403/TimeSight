@@ -12,4 +12,7 @@ public class Domain
     public string? Color { get; set; }
     public Guid? Id { get; set; }
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
+
+
+    public int CurrentDoneScore { get; set; }
 }

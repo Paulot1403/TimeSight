@@ -17,8 +17,8 @@ public static class SupabaseChoreExtensions
             UserId = supabaseChore.UserId,
             Name = supabaseChore.Name,
             IsDone = supabaseChore.IsDone,
-            Significance = supabaseChore.Significance,
-            Duration = supabaseChore.Duration,
+            Significance = supabaseChore.Significance ?? 2,
+            Duration = supabaseChore.Duration ?? 2,
             DoneAt = supabaseChore.DoneAt,
             ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };

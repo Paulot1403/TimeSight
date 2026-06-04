@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TimeSight;
 using TimeSight.repositories;
+using TimeSight.Services;
 using TimeSight.SupabaseClient;
 
 
@@ -15,7 +16,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IChoreRepository, SupabaseChoreRepository>();
 builder.Services.AddSingleton<IDomainRepository, SupabaseDomainRepository>();
 builder.Services.AddSingleton<IChoreDomainRepository, SupabaseChoreDomainRepository>();
-
+builder.Services.AddSingleton<OrderChoresService>();
 builder.Services.AddSupabase().Configure(options =>
 {
     builder.Configuration.Bind("Supabase", options);

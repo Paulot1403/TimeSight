@@ -11,7 +11,7 @@ namespace TimeSight.repositories;
 
 public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) : IChoreRepository
 {
-    public async Task<ICollection<Chore>> GetChoresAsync()
+    public async Task<List<Chore>> GetChoresAsync()
     {
         ICollection<SupabaseChore> supabaseChores = await supabaseChoreService.GetChoresAsync();
         return [.. supabaseChores.Select(sc =>

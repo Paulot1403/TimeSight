@@ -19,11 +19,11 @@ public class Chore
     /// <summary>
     /// De 1 à 4 ?
     /// </summary>
-    public int? Significance { get; set; }
+    public int Significance { get; set; } = 2;
     /// <summary>
     /// De 1 à 4 ?
     /// </summary>
-    public int? Duration { get; set; }
+    public int Duration { get; set; } = 2;
 
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
 

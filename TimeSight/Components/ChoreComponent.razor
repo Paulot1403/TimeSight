@@ -192,7 +192,7 @@ else
 
     public async Task RemoveLink(Chore chore, Domain domain)
     {
-        chore.ChoreDomains.RemoveAll(cd => matches(cd, chore, domain));
+        chore.ChoreDomains.RemoveAll(cd => cd.IsMadeOf(chore, domain));
         await choreDomainRepository.DeleteChoreDomainAsync(chore.Id!.Value, domain.Id!.Value);
     }
 
@@ -207,9 +207,5 @@ else
     {
         ArgumentNullException.ThrowIfNull(Chore?.Id);
         await OnDelete.InvokeAsync(Chore);
-    }
-    private bool matches(ChoreDomain choreDomain, Chore chore, Domain domain)
-    {
-        return choreDomain.ChoreId == chore.Id.Value && choreDomain.DomainId == domain.Id.Value;
     }
 }

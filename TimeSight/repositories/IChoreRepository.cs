@@ -8,7 +8,7 @@ namespace TimeSight.repositories;
 
 public interface IChoreRepository
 {
-    Task<ICollection<Chore>> GetChoresAsync();
+    Task<List<Chore>> GetChoresAsync();
 
     Task<Chore> CreateChoreAsync(Chore chore);
 

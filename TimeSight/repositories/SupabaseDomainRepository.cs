@@ -17,7 +17,7 @@ public class SupabaseDomainRepository(SupabaseDomainService supabaseDomainServic
         return supabaseDomain.ToDomain();
     }
 
-    public async Task<ICollection<Domain>> GetDomainsAsync()
+    public async Task<List<Domain>> GetDomainsAsync()
     {
         var supabaseDomains = await supabaseDomainService.GetDomainsAsync();
         return supabaseDomains.Select(sd => sd.ToDomain()).ToList();
