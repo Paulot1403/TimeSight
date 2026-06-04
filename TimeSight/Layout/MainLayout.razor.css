@@ -1,93 +1,48 @@
-.page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.sidebar {
-    background: #0f0f14;
-    border-right: 1px solid rgba(255, 255, 255, 0.055);
+.ts-sidebar {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
     flex-shrink: 0;
 }
 
 .top-row {
-    background: #0f0f14;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
     height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 1.5rem;
-    gap: 1rem;
-    flex-shrink: 0;
     position: sticky;
     top: 0;
     z-index: 10;
+    flex-shrink: 0;
 }
 
-    .top-row ::deep a,
-    .top-row ::deep .btn-link {
-        font-size: 0.8rem;
-        color: rgba(98, 98, 138, 1);
-        white-space: nowrap;
-        margin-left: 1rem;
-        text-decoration: none;
-        transition: color 0.18s;
-    }
+.top-row ::deep a,
+.top-row ::deep .btn-link {
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color var(--t);
+}
+.top-row ::deep a:hover,
+.top-row ::deep .btn-link:hover {
+    color: var(--text);
+}
 
-    .top-row ::deep a:hover,
-    .top-row ::deep .btn-link:hover {
-        color: #dddde8;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-.content {
-    flex: 1;
+.ts-content {
     padding: 1.75rem 2rem;
 }
 
 @media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-        padding: 0 1rem;
-    }
-    .content {
+    .ts-content {
         padding: 1.25rem 1rem;
     }
 }
 
 @media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
+    .ts-sidebar {
         width: 220px;
         height: 100vh;
         position: sticky;
         top: 0;
         overflow-y: auto;
-    }
-
-    main {
-        flex: 1;
-        overflow: hidden;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
     }
 }

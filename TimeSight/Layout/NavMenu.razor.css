@@ -1,123 +1,75 @@
-.nav-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.1rem 1rem 0.9rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
-}
-
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
 .nav-brand-mark {
     width: 30px;
     height: 30px;
-    background: #6366f1;
+    background: var(--accent);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 3px 10px var(--accent-glow);
 }
 
 .nav-brand-name {
-    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-family: var(--font-display);
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: #dddde8;
-}
-
-.nav-toggle {
-    display: none;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 6px;
-    color: rgba(98, 98, 138, 1);
-    width: 30px;
-    height: 30px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.15s;
-}
-.nav-toggle:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: #dddde8;
-}
-
-.nav-body {
-    padding: 1rem 0.65rem;
+    color: var(--text);
 }
 
 .nav-section-label {
-    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.65rem;
-    font-weight: 600;
     letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(53, 53, 74, 1);
-    padding: 0 0.5rem;
-    margin-bottom: 0.4rem;
+    color: var(--text-muted);
 }
 
+.nav-toggle {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-sub);
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: none;
+}
+.nav-toggle:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+}
+
+/* Override Bootstrap nav-link for sidebar context */
 .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    color: rgba(98, 98, 138, 1);
-    border-radius: 7px;
-    padding: 0.5rem 0.75rem;
+    color: var(--text-sub);
     font-size: 0.875rem;
     font-weight: 500;
-    text-decoration: none;
     transition: all 0.15s;
-    margin-bottom: 0.15rem;
 }
 .nav-link:hover {
     background: rgba(255, 255, 255, 0.05);
-    color: #dddde8;
+    color: var(--text);
 }
 .nav-link.active {
-    background: rgba(99, 102, 241, 0.12);
-    color: #818cf8;
+    background: var(--accent-dim);
+    color: var(--accent-soft);
 }
-.nav-link.active .nav-icon { opacity: 1; }
-
 .nav-icon {
     flex-shrink: 0;
     opacity: 0.6;
     transition: opacity 0.15s;
 }
 .nav-link:hover .nav-icon,
-.nav-link.active .nav-icon {
-    opacity: 1;
-}
+.nav-link.active .nav-icon { opacity: 1; }
 
 @media (max-width: 640.98px) {
-    .nav-toggle {
-        display: flex;
-    }
-    .collapse {
-        display: none;
-    }
-    .nav-body {
-        border-top: 1px solid rgba(255, 255, 255, 0.055);
-    }
+    .nav-toggle { display: flex; align-items: center; justify-content: center; }
+    .nav-body { border-top: 1px solid var(--border); }
 }
 
 @media (min-width: 641px) {
-    .nav-toggle {
-        display: none;
-    }
-    .collapse {
-        display: block;
-    }
+    /* Force nav body visible on desktop regardless of collapse state */
+    .collapse { display: block !important; }
     .nav-body {
         height: calc(100vh - 60px);
         overflow-y: auto;

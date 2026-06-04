@@ -10,13 +10,13 @@
 <PageTitle>Domains — TimeSight</PageTitle>
 
 <div class="domains-wrap">
-    <div class="page-header">
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
         <div>
             <h1 class="page-title">Domains</h1>
-            <p class="page-subtitle">Categories for your tasks</p>
+            <p class="text-muted small mb-0">Categories for your tasks</p>
         </div>
-        <div class="page-actions">
-            <button type="button" class="btn btn-primary" @onclick="AddDomain">
+        <div class="flex-shrink-0">
+            <button type="button" class="btn btn-primary btn-sm" @onclick="AddDomain">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                      stroke-linecap="round">
                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -27,18 +27,18 @@
         </div>
     </div>
 
-    <div class="domains-grid-wrap">
+    <div class="border rounded overflow-hidden">
         <QuickGrid Items="domains.AsQueryable()">
             <TemplateColumn Title="Name">
-                <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="d-flex align-items-center gap-2">
                     <span class="domain-color-dot" style="background:@(context.Color ?? "#6366f1")"></span>
                     @context.Name
                 </div>
             </TemplateColumn>
             <TemplateColumn Title="Actions">
-                <div style="display:flex;gap:0.4rem;">
-                    <button type="button" class="btn btn-ghost" @onclick="() => EditDomain(context)">Edit</button>
-                    <button type="button" class="btn btn-danger" @onclick="() => DeleteDomain(context)">Delete</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => EditDomain(context)">Edit</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeleteDomain(context)">Delete</button>
                 </div>
             </TemplateColumn>
         </QuickGrid>

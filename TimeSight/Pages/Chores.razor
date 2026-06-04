@@ -9,13 +9,13 @@
 
 <PageTitle>Tasks — TimeSight</PageTitle>
 
-<div class="page-header">
+<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
         <h1 class="page-title">Tasks</h1>
-        <p class="page-subtitle">@filteredChores.Count() task@(filteredChores.Count() == 1 ? "" : "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
+        <p class="text-muted small mb-0">@filteredChores.Count() task@(filteredChores.Count() == 1 ? "" : "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
     </div>
-    <div class="page-actions">
-        <button type="button" class="btn btn-ghost" @onclick="Order">
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
                 <line x1="3" y1="6" x2="21" y2="6" />
@@ -24,7 +24,7 @@
             </svg>
             Sort
         </button>
-        <button type="button" class="btn btn-primary" @onclick="AddChore">
+        <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
@@ -77,9 +77,6 @@
     private ICollection<Chore> chores = [];
     private Guid? _newlyAddedChoreId;
 
-    /// <summary>
-    /// Should we show done chores ?
-    /// </summary>
     private bool showDone = false;
     private HashSet<Guid> selectedDomainIds = [];
 

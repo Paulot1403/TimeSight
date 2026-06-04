@@ -1,5 +1,5 @@
-<div class="nav-header">
-    <div class="nav-brand">
+<div class="nav-header d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
         <div class="nav-brand-mark">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
                 <circle cx="12" cy="12" r="9"/>
@@ -8,7 +8,7 @@
         </div>
         <span class="nav-brand-name">TimeSight</span>
     </div>
-    <button title="Navigation menu" class="nav-toggle" @onclick="ToggleNavMenu">
+    <button title="Navigation menu" class="nav-toggle btn btn-sm" @onclick="ToggleNavMenu">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <line x1="3" y1="6" x2="21" y2="6"/>
             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -18,16 +18,16 @@
 </div>
 
 <div class="@NavMenuCssClass nav-body" @onclick="ToggleNavMenu">
-    <nav>
-        <p class="nav-section-label">Navigation</p>
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+    <nav class="nav flex-column px-2 py-3">
+        <p class="nav-section-label text-uppercase fw-semibold small ps-2 mb-2">Navigation</p>
+        <NavLink class="nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2" href="" Match="NavLinkMatch.All">
             <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 11l3 3L22 4"/>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
             </svg>
             Tasks
         </NavLink>
-        <NavLink class="nav-link" href="domains">
+        <NavLink class="nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2" href="domains">
             <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
                 <rect x="14" y="3" width="7" height="7" rx="1"/>

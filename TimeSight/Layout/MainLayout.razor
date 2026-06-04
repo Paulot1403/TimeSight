@@ -1,16 +1,14 @@
 @inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
+<div class="ts-layout d-flex flex-column flex-sm-row min-vh-100">
+    <div class="ts-sidebar">
         <NavMenu />
     </div>
-
-    <main>
-        <div class="top-row auth">
+    <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+        <div class="top-row d-flex align-items-center justify-content-end px-3 gap-3">
             <LoginDisplay />
         </div>
-
-        <article class="content">
+        <article class="ts-content flex-grow-1">
             @Body
         </article>
-    </main>
+    </div>
 </div>
