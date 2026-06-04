@@ -63,7 +63,8 @@
 <ul class="chores-list">
     @foreach (var chore in filteredChores)
     {
-        <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged">
+        <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
+                        StartEditing="chore.Id == _newlyAddedChoreId">
         </ChoreComponent>
     }
 </ul>
@@ -74,6 +75,7 @@
 
     private ICollection<Domain> domains = [];
     private ICollection<Chore> chores = [];
+    private Guid? _newlyAddedChoreId;
 
     /// <summary>
     /// Should we show done chores ?
@@ -115,9 +117,10 @@
         Chore chore = new Chore()
         {
             UserId = UserId!.Value,
-            Name = "Choose"
+            Name = "New task"
         };
         chore = await choreRepository.CreateChoreAsync(chore);
+        _newlyAddedChoreId = chore.Id;
         chores.Add(chore);
     }
 

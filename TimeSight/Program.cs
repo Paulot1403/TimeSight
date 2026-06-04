@@ -32,4 +32,5 @@ static async Task LoadSessionFromLocalStorage(WebAssemblyHost host)
     var supabase = host.Services.GetRequiredService<Supabase.Client>();
     await supabase.InitializeAsync();
     supabase.Auth.LoadSession();
+    await supabase.Auth.RetrieveSessionAsync();
 }

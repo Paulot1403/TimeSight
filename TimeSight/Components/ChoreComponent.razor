@@ -1,6 +1,7 @@
 @using TimeSight.repositories
 @inject IChoreRepository choreRepository
 @inject IChoreDomainRepository choreDomainRepository
+@inject IJSRuntime JS
 
 @if (Chore == null)
 {
@@ -125,14 +126,38 @@ else
     }
 
 
+    [Parameter]
+    public bool StartEditing { get; set; }
+
     private bool isEditingName = false;
+    private bool _shouldFocus = false;
     private string editingName = string.Empty;
     private ElementReference nameInputRef;
+
+    protected override void OnInitialized()
+    {
+        if (StartEditing)
+        {
+            editingName = Chore?.Name ?? string.Empty;
+            isEditingName = true;
+            _shouldFocus = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldFocus)
+        {
+            _shouldFocus = false;
+            await JS.InvokeVoidAsync("blazorHelpers.focusAndSelect", nameInputRef);
+        }
+    }
 
     private void StartEditingName()
     {
         editingName = Chore!.Name ?? string.Empty;
         isEditingName = true;
+        _shouldFocus = true;
         StateHasChanged();
     }
 
