@@ -9,7 +9,9 @@ public class SupabaseDomain : BaseModel
     [Column("user_id")]
     public Guid UserId { get; set; }
     [Column("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = "";
+    [Column("color")]
+    public string? Color { get; set; }
     [PrimaryKey("id", false)]
     public Guid? Id { get; set; }
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];

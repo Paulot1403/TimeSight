@@ -19,6 +19,7 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IChoreRepository, SupabaseChoreRepository>();
 builder.Services.AddSingleton<IDomainRepository, SupabaseDomainRepository>();
+builder.Services.AddSingleton<IChoreDomainRepository, SupabaseChoreDomainRepository>();
 
 builder.Services.AddSupabase().Configure(options =>
 {

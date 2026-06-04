@@ -39,5 +39,15 @@ public class SupabaseChoreService(Client supabase)
             .Delete();
     }
 
+    public async Task AddChoreDomainAsync(SupabaseChoreDomain choreDomain)
+    {
+        await supabase.From<SupabaseChoreDomain>().Insert(choreDomain);
+    }
 
+    public async Task RemoveChoreDomainAsync(Guid choreId, Guid domainId)
+    {
+        await supabase.From<SupabaseChoreDomain>()
+            .Where(cd => cd.ChoreId == choreId && cd.DomainId == domainId)
+            .Delete();
+    }
 }

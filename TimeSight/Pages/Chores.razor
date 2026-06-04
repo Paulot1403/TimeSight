@@ -12,31 +12,59 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Tasks</h1>
-        <p class="page-subtitle">@chores.Count task@(chores.Count == 1 ? "" : "s")</p>
+        <p class="page-subtitle">@filteredChores.Count() task@(filteredChores.Count() == 1 ? "" : "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
     </div>
     <div class="page-actions">
         <button type="button" class="btn btn-ghost" @onclick="Order">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="8" y1="12" x2="21" y2="12"/>
-                <line x1="13" y1="18" x2="21" y2="18"/>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="13" y1="18" x2="21" y2="18" />
             </svg>
             Sort
         </button>
         <button type="button" class="btn btn-primary" @onclick="AddChore">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             New task
         </button>
     </div>
 </div>
 
-<ul class="chores-list">
-    @foreach (var chore in chores)
+<div class="filter-bar">
+    <button class="filter-pill @(showDone ? "active" : "")" @onclick="() => showDone = !showDone">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Completed
+    </button>
+
+    @foreach (var domain in domains)
     {
-        <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains"></ChoreComponent>
+        var isActive = selectedDomainIds.Contains(domain.Id!.Value);
+        <button class="filter-pill @(isActive ? "active" : "")" style="--pill-color:@(domain.Color ?? "#6366f1")"
+                @onclick="() => ToggleDomainFilter(domain.Id!.Value)">
+            <span class="filter-pill-dot"></span>
+            @domain.Name
+        </button>
+    }
+
+    @if (IsFiltered)
+    {
+        <button class="filter-clear" @onclick="ClearFilters">Clear</button>
+    }
+</div>
+
+<ul class="chores-list">
+    @foreach (var chore in filteredChores)
+    {
+        <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged">
+        </ChoreComponent>
     }
 </ul>
 
@@ -46,8 +74,27 @@
 
     private ICollection<Domain> domains = [];
     private ICollection<Chore> chores = [];
-    private ICollection<ChoreDomain> choreDomains = [];
 
+    /// <summary>
+    /// Should we show done chores ?
+    /// </summary>
+    private bool showDone = false;
+    private HashSet<Guid> selectedDomainIds = [];
+
+    private bool IsFiltered => showDone || selectedDomainIds.Count > 0;
+
+    private IEnumerable<Chore> filteredChores
+    {
+        get
+        {
+            var result = chores.AsEnumerable();
+            if (!showDone)
+                result = result.Where(c => !c.IsDone);
+            if (selectedDomainIds.Count > 0)
+                result = result.Where(c => c.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
+            return result;
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -55,6 +102,7 @@
         domains = await domainRepository.GetDomainsAsync();
         await base.OnInitializedAsync();
     }
+
     public async Task HandleDelete(Chore chore)
     {
         ArgumentNullException.ThrowIfNull(chore.Id);
@@ -66,15 +114,24 @@
     {
         Chore chore = new Chore()
         {
-            UserId = UserId.Value,
+            UserId = UserId!.Value,
             Name = "Choose"
         };
         chore = await choreRepository.CreateChoreAsync(chore);
         chores.Add(chore);
     }
 
+    private void ToggleDomainFilter(Guid domainId)
+    {
+        if (!selectedDomainIds.Remove(domainId))
+            selectedDomainIds.Add(domainId);
+    }
 
-    public void Order()
-    { }
+    private void ClearFilters()
+    {
+        showDone = false;
+        selectedDomainIds.Clear();
+    }
 
+    public void Order() { }
 }

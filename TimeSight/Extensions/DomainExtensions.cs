@@ -15,7 +15,8 @@ public static class DomainExtensions
         {
             Id = domain.Id,
             UserId = domain.UserId,
-            Name = domain.Name
+            Name = domain.Name,
+            Color = domain.Color
         };
     }
 }

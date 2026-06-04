@@ -28,7 +28,12 @@
 
     <div class="domains-grid-wrap">
         <QuickGrid Items="domains.AsQueryable()">
-            <PropertyColumn Property="d => d.Name" Title="Name" />
+            <TemplateColumn Title="Name">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span class="domain-color-dot" style="background:@(context.Color ?? "#6366f1")"></span>
+                    @context.Name
+                </div>
+            </TemplateColumn>
             <TemplateColumn Title="Actions">
                 <div style="display:flex;gap:0.4rem;">
                     <button type="button" class="btn btn-ghost" @onclick="() => EditDomain(context)">Edit</button>

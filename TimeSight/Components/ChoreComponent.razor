@@ -1,5 +1,6 @@
 @using TimeSight.repositories
 @inject IChoreRepository choreRepository
+@inject IChoreDomainRepository choreDomainRepository
 
 @if (Chore == null)
 {
@@ -7,21 +8,31 @@
 }
 else
 {
-    <li class="chore-card">
+    <li class="chore-card @(Chore.IsDone ? "chore-done" : "")">
         <div class="chore-inner">
 
             <div class="chore-check-wrap">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="check-@Chore.Id">
+                    <input class="form-check-input" type="checkbox" id="check-@Chore.Id" checked="@Chore.IsDone"
+                           @onchange="ToggleDone" />
                 </div>
             </div>
 
             <div class="chore-body">
-                <span class="chore-name">@Chore.Name</span>
+                @if (isEditingName)
+                {
+                    <input class="chore-name-input" @bind="editingName" @bind:event="oninput" @onblur="SaveName"
+                           @onkeydown="OnNameKeyDown" @ref="nameInputRef" />
+                }
+                else
+                {
+                    <span class="chore-name" @onclick="StartEditingName" title="Click to edit">@Chore.Name</span>
+                }
                 <div class="chore-tags">
                     @foreach (var domain in domainsSelected)
                     {
-                        <button type="button" class="domain-tag" @onclick="() => RemoveLink(Chore, domain)">
+                        <button type="button" class="domain-tag" @onclick="() => RemoveLink(Chore, domain)"
+                                style="--tag-color:@(domain.Color ?? "#6366f1")">
                             @domain.Name<span class="domain-tag-x">×</span>
                         </button>
                     }
@@ -44,24 +55,27 @@ else
                     <span class="metric-label">Impact</span>
                     <div class="metric-row">
                         <span class="metric-val">@Chore.Significance</span>
-                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Significance" @bind:event="oninput" id="sig-@Chore.Id">
+                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Significance"
+                               @bind:event="oninput" id="sig-@Chore.Id">
                     </div>
                 </div>
                 <div class="metric">
                     <span class="metric-label">Duration</span>
                     <div class="metric-row">
                         <span class="metric-val">@Chore.Duration</span>
-                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Duration" @bind:event="oninput" id="dur-@Chore.Id">
+                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Duration" @bind:event="oninput"
+                               id="dur-@Chore.Id">
                     </div>
                 </div>
             </div>
 
             <button class="btn-delete-chore" @onclick="Delete" title="Delete task">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6"/>
-                    <path d="M9 6V4h6v2"/>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
                 </svg>
             </button>
 
@@ -78,26 +92,90 @@ else
     public EventCallback<Chore> OnDelete { get; set; }
 
     [Parameter]
-    public ICollection<Domain>? allDomains { get; set; }
-    private ICollection<Domain>? domainsSelected => Chore?.ChoreDomains?.Select(cd => cd.Domain!)?.ToList();
-    private ICollection<Domain>? domainsNotSelected => allDomains?.Except(domainsSelected).ToList();
+    public EventCallback OnIsDoneChanged { get; set; }
 
-
-    protected override void OnParametersSet()
+    [Parameter]
+    public ICollection<Domain>? allDomains
     {
-        allDomains ??= [];
+        get { return field == null ? [] : field; }
+        set { field = value; }
     }
+    private ICollection<Domain> domainsSelected
+    {
+        get
+        {
+            if (Chore == null)
+            {
+                return [];
+            }
+            return Chore.ChoreDomains.Select(cd => cd.Domain).ToList();
+        }
+    }
+    private ICollection<Domain>? domainsNotSelected
+    {
+        get
+        {
+            if (allDomains == null)
+            {
+                return [];
+            }
+
+            return allDomains.Except(domainsSelected).ToList();
+        }
+    }
+
+
+    private bool isEditingName = false;
+    private string editingName = string.Empty;
+    private ElementReference nameInputRef;
+
+    private void StartEditingName()
+    {
+        editingName = Chore!.Name ?? string.Empty;
+        isEditingName = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveName()
+    {
+        if (!isEditingName) return;
+        isEditingName = false;
+        var trimmed = editingName.Trim();
+        if (!string.IsNullOrEmpty(trimmed) && trimmed != Chore!.Name)
+        {
+            Chore.Name = trimmed;
+            await choreRepository.UpdateChoreAsync(Chore);
+        }
+    }
+
+    private async Task OnNameKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SaveName();
+        else if (e.Key == "Escape")
+        {
+            isEditingName = false;
+        }
+    }
+
+    private async Task ToggleDone(ChangeEventArgs e)
+    {
+        Chore!.IsDone = (bool)e.Value!;
+        Chore.DoneAt = Chore.IsDone ? DateTime.UtcNow : null;
+        await choreRepository.UpdateChoreAsync(Chore);
+        await OnIsDoneChanged.InvokeAsync();
+    }
+
     public async Task RemoveLink(Chore chore, Domain domain)
     {
         chore.ChoreDomains.RemoveAll(cd => matches(cd, chore, domain));
-        await choreRepository.UpdateChoreAsync(chore);
+        await choreDomainRepository.DeleteChoreDomainAsync(chore.Id!.Value, domain.Id!.Value);
     }
+
     public async Task AddLink(Chore chore, Domain domain)
     {
         ChoreDomain choreDomain = new ChoreDomain(chore, domain);
-
         chore.ChoreDomains.Add(choreDomain);
-        await choreRepository.UpdateChoreAsync(chore);
+        await choreDomainRepository.CreateChoreDomainAsync(choreDomain);
     }
 
     public async Task Delete()

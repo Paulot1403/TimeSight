@@ -25,6 +25,18 @@
                 <ValidationMessage for="() => domain.Name" />
             </div>
 
+            <div class="form-group">
+                <label for="domain-color">Color</label>
+                <div class="domain-color-picker-wrap">
+                    <input type="color" id="domain-color" class="domain-color-input"
+                           value="@(domain.Color ?? "#6366f1")"
+                           @oninput="e => domain.Color = e.Value?.ToString()" />
+                    <span class="domain-tag" style="--tag-color:@(domain.Color ?? "#6366f1")">
+                        @domain.Name
+                    </span>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
                     @(Id != null ? "Save changes" : "Create domain")

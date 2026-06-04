@@ -23,7 +23,7 @@ public class ChoreDomain
     public Guid UserId { get; set; }
     public Guid ChoreId { get; set; }
     public Guid DomainId { get; set; }
-    public int Intensity { get; set; } = 2;
+    public int LinkIntensity { get; set; } = 2;
 
     public Chore? Chore { get; set; } = null!;
     public Domain? Domain { get; set; } = null!;

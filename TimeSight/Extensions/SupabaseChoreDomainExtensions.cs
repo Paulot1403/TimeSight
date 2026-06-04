@@ -16,7 +16,8 @@ public static class SupabaseChoreDomainExtensions
             UserId = supabaseChoreDomain.UserId,
             ChoreId = supabaseChoreDomain.ChoreId,
             DomainId = supabaseChoreDomain.DomainId,
-            Intensity = supabaseChoreDomain.Intensity
+            LinkIntensity = supabaseChoreDomain.LinkIntensity,
+            Domain = supabaseChoreDomain.Domain.ToDomain()
         };
     }
 }

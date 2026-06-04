@@ -42,5 +42,4 @@ public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) 
         await supabaseChoreService.DeleteChoreAsync(choreId);
     }
 
-
 }
