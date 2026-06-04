@@ -1,13 +1,8 @@
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using TimeSight;
 using TimeSight.repositories;
 using TimeSight.SupabaseClient;
-using TimeSight.SupabaseClient.Auth;
-using TimeSight.SupabaseClient.Options;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -27,5 +22,14 @@ builder.Services.AddSupabase().Configure(options =>
 });
 
 var host = builder.Build();
-await host.Services.GetRequiredService<Supabase.Client>().InitializeAsync();
+
+await LoadSessionFromLocalStorage(host);
+
 await host.RunAsync();
+
+static async Task LoadSessionFromLocalStorage(WebAssemblyHost host)
+{
+    var supabase = host.Services.GetRequiredService<Supabase.Client>();
+    await supabase.InitializeAsync();
+    supabase.Auth.LoadSession();
+}
