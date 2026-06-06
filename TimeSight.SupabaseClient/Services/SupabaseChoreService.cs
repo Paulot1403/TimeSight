@@ -15,8 +15,7 @@ public class SupabaseChoreService(Client supabase)
             .Select(@"
                 *,
                 SupabaseChoreDomains:chore_domain(
-                    *,
-                    Domain:domains(*)
+                    *
                 )
             ")
             .Get();

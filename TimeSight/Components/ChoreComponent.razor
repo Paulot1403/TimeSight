@@ -109,7 +109,7 @@ else
             {
                 return [];
             }
-            return Chore.ChoreDomains.Select(cd => cd.Domain).ToList();
+            return [.. allDomains.Where(d => Chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
         }
     }
     private ICollection<Domain>? domainsNotSelected
