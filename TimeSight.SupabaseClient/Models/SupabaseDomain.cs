@@ -12,6 +12,8 @@ public class SupabaseDomain : BaseModel
     public string Name { get; set; } = "";
     [Column("color")]
     public string? Color { get; set; }
+    [Column("description")]
+    public string? Description { get; set; }
     [PrimaryKey("id", false)]
     public Guid? Id { get; set; }
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];

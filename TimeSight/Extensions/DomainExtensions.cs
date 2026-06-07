@@ -16,7 +16,8 @@ public static class DomainExtensions
             Id = domain.Id,
             UserId = domain.UserId,
             Name = domain.Name,
-            Color = domain.Color
+            Color = domain.Color,
+            Description = domain.Description
         };
     }
 }

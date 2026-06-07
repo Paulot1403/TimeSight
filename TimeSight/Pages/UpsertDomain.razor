@@ -22,16 +22,22 @@
 
                 <div class="mb-3">
                     <label class="form-label" for="domain-name">Name</label>
-                    <InputText class="form-control" id="domain-name" placeholder="e.g. Work, Health, Personal…" @bind-Value="domain.Name" />
+                    <InputText class="form-control" id="domain-name" placeholder="e.g. Work, Health, Personal…"
+                               @bind-Value="domain.Name" />
                     <ValidationMessage for="() => domain.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="domain-description">Description</label>
+                    <InputTextArea class="form-control" id="domain-description" rows="8" placeholder="Markdown supported…"
+                                   @bind-Value="domain.Description" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="domain-color">Color</label>
                     <div class="domain-color-picker-wrap">
                         <input type="color" id="domain-color" class="domain-color-input"
-                               value="@(domain.Color ?? "#6366f1")"
-                               @oninput="e => domain.Color = e.Value?.ToString()" />
+                               value="@(domain.Color ?? "#6366f1")" @oninput="e => domain.Color = e.Value?.ToString()" />
                         <span class="domain-tag" style="--tag-color:@(domain.Color ?? "#6366f1")">
                             @domain.Name
                         </span>
@@ -42,7 +48,8 @@
                     <button type="submit" class="btn btn-primary">
                         @(Id != null ? "Save changes" : "Create domain")
                     </button>
-                    <button type="button" class="btn btn-outline-secondary" @onclick='() => navigationManager.NavigateToRelative("domains")'>
+                    <button type="button" class="btn btn-outline-secondary"
+                            @onclick='() => navigationManager.NavigateToRelative("domains")'>
                         Cancel
                     </button>
                 </div>

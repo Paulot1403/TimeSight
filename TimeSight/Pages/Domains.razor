@@ -31,18 +31,59 @@
         <QuickGrid Items="domains.AsQueryable()">
             <TemplateColumn Title="Name">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="domain-color-dot" style="background:@(context.Color ?? "#6366f1")"></span>
+                    <span class="domain-color-dot flex-shrink-0"
+                          style="background:@(context.Color ?? "#6366f1")"></span>
                     @context.Name
                 </div>
             </TemplateColumn>
-            <TemplateColumn Title="Actions">
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => EditDomain(context)">Edit</button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeleteDomain(context)">Delete</button>
-                </div>
+            <TemplateColumn Title="" Class="domain-col-icon">
+                @if (!string.IsNullOrWhiteSpace(context.Description))
+                {
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            @onclick="() => ToggleDescription(context.Id!.Value)"
+                            title="@(expandedId == context.Id!.Value ? "Hide description" : "Show description")">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            @if (expandedId == context.Id!.Value)
+                            {
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            }
+                            else
+                            {
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            }
+                        </svg>
+                    </button>
+                }
+            </TemplateColumn>
+            <TemplateColumn Title="" Class="domain-col-edit">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        @onclick="() => EditDomain(context)">Edit</button>
+            </TemplateColumn>
+            <TemplateColumn Title="" Class="domain-col-delete">
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                        @onclick="() => DeleteDomain(context)">Delete</button>
             </TemplateColumn>
         </QuickGrid>
     </div>
+
+    @if (expandedId is Guid id)
+    {
+        var domain = domains.FirstOrDefault(d => d.Id == id);
+        if (domain is not null)
+        {
+            <div class="domain-description-panel mt-3 p-3 border rounded">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="domain-color-dot flex-shrink-0" style="background:@(domain.Color ?? "#6366f1")"></span>
+                    <strong>@domain.Name</strong>
+                </div>
+                <MarkdownView Value="@domain.Description" />
+            </div>
+        }
+    }
 </div>
 
 @code {
@@ -50,11 +91,17 @@
     public Guid UserId { get; set; }
 
     private ICollection<Domain> domains = [];
+    private Guid? expandedId;
 
     protected override async Task OnInitializedAsync()
     {
         domains = await domainRepository.GetDomainsAsync();
         await base.OnInitializedAsync();
+    }
+
+    private void ToggleDescription(Guid id)
+    {
+        expandedId = expandedId == id ? null : id;
     }
 
     public async Task AddDomain()
@@ -64,6 +111,8 @@
 
     public async Task DeleteDomain(Domain domain)
     {
+        if (expandedId == domain.Id)
+            expandedId = null;
         await domainRepository.DeleteDomainAsync(domain.Id!.Value);
         domains.Remove(domain);
     }

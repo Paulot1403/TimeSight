@@ -16,7 +16,8 @@ public static class SupabaseDomainExtensions
             Id = supabaseDomain.Id,
             UserId = supabaseDomain.UserId,
             Name = supabaseDomain.Name,
-            Color = supabaseDomain.Color
+            Color = supabaseDomain.Color,
+            Description = supabaseDomain.Description
         };
     }
 }

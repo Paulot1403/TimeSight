@@ -1,0 +1,17 @@
+@using Markdig
+@using Microsoft.AspNetCore.Components
+
+@if (!string.IsNullOrWhiteSpace(Value))
+{
+    <div class="markdown-body">@((MarkupString)Rendered)</div>
+}
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    private string Rendered => Markdown.ToHtml(Value ?? "", Pipeline);
+
+    private static readonly MarkdownPipeline Pipeline =
+        new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+}
