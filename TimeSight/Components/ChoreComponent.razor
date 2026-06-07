@@ -1,7 +1,7 @@
+﻿@using TimeSight.Services
 @using TimeSight.repositories
 @inject IChoreRepository choreRepository
-@inject IChoreDomainRepository choreDomainRepository
-@inject IJSRuntime JS
+@inject ChoreDomainService choreDomainService
 
 @if (Chore == null)
 {
@@ -9,10 +9,10 @@
 }
 else
 {
-    <li class="chore-card @(Chore.IsDone ? "chore-done" : "")">
+    <li class="chore-card @(Chore.IsDone ? "chore-done" : "")" @onclick="OpenPanel">
         <div class="chore-inner">
 
-            <div class="chore-check-wrap">
+            <div class="chore-check-wrap" @onclick:stopPropagation>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="check-@Chore.Id" checked="@Chore.IsDone"
                            @onchange="ToggleDone" />
@@ -20,21 +20,13 @@ else
             </div>
 
             <div class="chore-body">
-                @if (isEditingName)
-                {
-                    <input class="chore-name-input" @bind="editingName" @bind:event="oninput" @onblur="SaveName"
-                           @onkeydown="OnNameKeyDown" @ref="nameInputRef" />
-                }
-                else
-                {
-                    <span class="chore-name" @onclick="StartEditingName" title="Click to edit">@Chore.Name</span>
-                }
-                <div class="chore-tags">
+                <span class="chore-name">@Chore.Name</span>
+                <div class="chore-tags" @onclick:stopPropagation>
                     @foreach (var domain in domainsSelected)
                     {
-                        <button type="button" class="domain-tag" @onclick="() => RemoveLink(Chore, domain)"
+                        <button type="button" class="domain-tag" @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
                                 style="--tag-color:@(domain.Color ?? "#6366f1")">
-                            @domain.Name<span class="domain-tag-x">×</span>
+                            @domain.Name<span class="domain-tag-x">x</span>
                         </button>
                     }
                     <div class="dropdown">
@@ -44,37 +36,24 @@ else
                         <ul class="dropdown-menu">
                             @foreach (var domain in domainsNotSelected)
                             {
-                                <li><a class="dropdown-item" @onclick="() => AddLink(Chore, domain)">@domain.Name</a></li>
-                            }
-                        </ul>
+                                <li><a class="dropdown-item"
+                                           @onclick="() => choreDomainService.AddLink(Chore, domain)">@domain.Name</a></li>
+                                }
+                            </ul>
+                        </div>
                     </div>
                 </div>
+
+                <DeleteButton OnDelete="InvokeOnDeleteAsync" />
+
             </div>
 
-            <div class="chore-metrics">
-                <div class="metric">
-                    <span class="metric-label">Duration</span>
-                    <div class="metric-row">
-                        <span class="metric-val">@Chore.Duration</span>
-                        <input type="range" class="form-range" min="1" max="@Chore.MAX_DURATION" @bind="Chore.Duration"
-                               @bind:event="oninput" id="dur-@Chore.Id">
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn-delete-chore" @onclick="Delete" title="Delete task">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                    <path d="M10 11v6M14 11v6" />
-                    <path d="M9 6V4h6v2" />
-                </svg>
-            </button>
-
-        </div>
-    </li>
-}
+            @if (showPanel)
+            {
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel" />
+            }
+        </li>
+    }
 
 
 @code {
@@ -93,85 +72,34 @@ else
         get { return field == null ? [] : field; }
         set { field = value; }
     }
-    private ICollection<Domain> domainsSelected
-    {
-        get
-        {
-            if (Chore == null)
-            {
-                return [];
-            }
-            return [.. allDomains.Where(d => Chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
-        }
-    }
-    private ICollection<Domain>? domainsNotSelected
-    {
-        get
-        {
-            if (allDomains == null)
-            {
-                return [];
-            }
-
-            return allDomains.Except(domainsSelected).ToList();
-        }
-    }
-
 
     [Parameter]
     public bool StartEditing { get; set; }
 
-    private bool isEditingName = false;
-    private bool _shouldFocus = false;
-    private string editingName = string.Empty;
-    private ElementReference nameInputRef;
+    private ICollection<Domain> domainsSelected
+    {
+        get
+        {
+            if (Chore == null) return [];
+            return [.. allDomains.Where(d => Chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
+        }
+    }
+
+    private ICollection<Domain>? domainsNotSelected
+    {
+        get
+        {
+            if (allDomains == null) return [];
+            return allDomains.Except(domainsSelected).ToList();
+        }
+    }
+
+    private bool showPanel = false;
 
     protected override void OnInitialized()
     {
         if (StartEditing)
-        {
-            editingName = Chore?.Name ?? string.Empty;
-            isEditingName = true;
-            _shouldFocus = true;
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_shouldFocus)
-        {
-            _shouldFocus = false;
-            await JS.InvokeVoidAsync("blazorHelpers.focusAndSelect", nameInputRef);
-        }
-    }
-
-    private void StartEditingName()
-    {
-        editingName = Chore!.Name ?? string.Empty;
-        isEditingName = true;
-        _shouldFocus = true;
-        StateHasChanged();
-    }
-
-    private async Task SaveName()
-    {
-        if (!isEditingName) return;
-        isEditingName = false;
-        var trimmed = editingName.Trim();
-        if (!string.IsNullOrEmpty(trimmed) && trimmed != Chore!.Name)
-        {
-            Chore.Name = trimmed;
-            await choreRepository.UpdateChoreAsync(Chore);
-        }
-    }
-
-    private async Task OnNameKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await SaveName();
-        else if (e.Key == "Escape")
-        {
-            isEditingName = false;
-        }
+            showPanel = true;
     }
 
     private async Task ToggleDone(ChangeEventArgs e)
@@ -182,22 +110,12 @@ else
         await OnIsDoneChanged.InvokeAsync();
     }
 
-    public async Task RemoveLink(Chore chore, Domain domain)
-    {
-        chore.ChoreDomains.RemoveAll(cd => cd.IsMadeOf(chore, domain));
-        await choreDomainRepository.DeleteChoreDomainAsync(chore.Id!.Value, domain.Id!.Value);
-    }
-
-    public async Task AddLink(Chore chore, Domain domain)
-    {
-        ChoreDomain choreDomain = new ChoreDomain(chore, domain);
-        chore.ChoreDomains.Add(choreDomain);
-        await choreDomainRepository.CreateChoreDomainAsync(choreDomain);
-    }
-
-    public async Task Delete()
+    private async Task InvokeOnDeleteAsync()
     {
         ArgumentNullException.ThrowIfNull(Chore?.Id);
         await OnDelete.InvokeAsync(Chore);
     }
+
+    private void OpenPanel() => showPanel = true;
+    private void ClosePanel() => showPanel = false;
 }
