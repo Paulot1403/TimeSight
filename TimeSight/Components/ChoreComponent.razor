@@ -26,23 +26,33 @@ else
                 <div class="chore-tags" @onclick:stopPropagation>
                     @foreach (var domain in domainsSelected)
                     {
-                        <button type="button" class="domain-tag" @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
-                                style="--tag-color:@(domain.Color ?? "#6366f1")">
-                            @domain.Name<span class="domain-tag-x">x</span>
-                        </button>
+                        @if (Chore.ParentChoreId == null)
+                        {
+                            <button type="button" class="domain-tag" @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
+                                    style="--tag-color:@(domain.Color ?? "#6366f1")">
+                                @domain.Name<span class="domain-tag-x">x</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="domain-tag" style="--tag-color:@(domain.Color ?? "#6366f1")">@domain.Name</span>
+                        }
                     }
-                    <div class="dropdown">
-                        <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            + domain
-                        </button>
-                        <ul class="dropdown-menu">
-                            @foreach (var domain in domainsNotSelected)
-                            {
-                                <li><a class="dropdown-item"
-                                           @onclick="() => choreDomainService.AddLink(Chore, domain)">@domain.Name</a></li>
+                    @if (Chore.ParentChoreId == null)
+                    {
+                        <div class="dropdown">
+                            <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                + domain
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach (var domain in domainsNotSelected)
+                                {
+                                    <li><a class="dropdown-item"
+                                               @onclick="() => choreDomainService.AddLink(Chore, domain)">@domain.Name</a></li>
                                 }
                             </ul>
                         </div>
+                    }
 
                     @if (Chore.ParentChoreId == null)
                     {
@@ -114,12 +124,17 @@ else
     [Parameter]
     public bool StartEditing { get; set; }
 
+    private Chore? parentChore => Chore?.ParentChoreId != null
+        ? AllChores.FirstOrDefault(c => c.Id == Chore.ParentChoreId)
+        : null;
+
     private ICollection<Domain> domainsSelected
     {
         get
         {
             if (Chore == null) return [];
-            return [.. allDomains.Where(d => Chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
+            var source = parentChore ?? Chore;
+            return [.. allDomains.Where(d => source.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
         }
     }
 
@@ -180,6 +195,7 @@ else
 
     private async Task SetParent(Chore parent)
     {
+        await choreDomainService.ClearLinks(Chore!);
         Chore!.ParentChoreId = parent.Id;
         await choreRepository.UpdateChoreAsync(Chore);
         await OnHierarchyChanged.InvokeAsync();

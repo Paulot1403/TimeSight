@@ -21,4 +21,12 @@ public class ChoreDomainService(IChoreDomainRepository choreDomainRepository)
         chore.ChoreDomains.Add(choreDomain);
         await choreDomainRepository.CreateChoreDomainAsync(choreDomain);
     }
+
+    public async Task ClearLinks(Chore chore)
+    {
+        var toRemove = chore.ChoreDomains.ToList();
+        chore.ChoreDomains.Clear();
+        foreach (var cd in toRemove)
+            await choreDomainRepository.DeleteChoreDomainAsync(cd.ChoreId, cd.DomainId);
+    }
 }

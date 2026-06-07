@@ -114,7 +114,13 @@
         @if (DomainsSelected.Any())
         {
             <div class="mb-2">
-                <label class="form-label">Domain intensity</label>
+                <label class="form-label">
+                    Domain intensity
+                    @if (isSubtask)
+                    {
+                        <span class="text-muted ms-1" style="font-size:0.75rem">— inherited from parent</span>
+                    }
+                </label>
                 @foreach (var domain in DomainsSelected)
                 {
                     <div class="domain-intensity-row">
@@ -124,7 +130,8 @@
                         <div class="domain-intensity-control">
                             <input type="range" class="panel-range" min="1" max="5"
                                    value="@GetIntensity(domain)"
-                                   @oninput="e => SetIntensity(domain, e)" />
+                                   @oninput="e => SetIntensity(domain, e)"
+                                   disabled="@isSubtask" />
                             <span class="panel-metric-val">@GetIntensity(domain)</span>
                         </div>
                     </div>
@@ -153,6 +160,8 @@
     private bool descriptionPreview = false;
     private int editDuration;
     private Dictionary<Guid, int> intensities = [];
+
+    private bool isSubtask => Chore?.ParentChoreId != null;
 
     private Chore? parentChore =>
         Chore?.ParentChoreId != null
@@ -193,9 +202,16 @@
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
         editDuration = Chore?.Duration ?? 1;
-        intensities = Chore?.ChoreDomains
+        var intensitySource = isSubtask ? parentChore : Chore;
+        intensities = intensitySource?.ChoreDomains
             .ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity) ?? [];
         _shouldFocus = true;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (isSubtask && parentChore != null)
+            intensities = parentChore.ChoreDomains.ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -215,6 +231,9 @@
 
     private async Task SetParent(Chore parent)
     {
+        foreach (var cd in Chore!.ChoreDomains.ToList())
+            await choreDomainRepository.DeleteChoreDomainAsync(cd.ChoreId, cd.DomainId);
+        Chore!.ChoreDomains.Clear();
         Chore!.ParentChoreId = parent.Id;
         await choreRepository.UpdateChoreAsync(Chore);
         await OnHierarchyChanged.InvokeAsync();
@@ -256,12 +275,15 @@
         if (choreChanged)
             await choreRepository.UpdateChoreAsync(Chore);
 
-        foreach (var cd in Chore!.ChoreDomains)
+        if (!isSubtask)
         {
-            if (intensities.TryGetValue(cd.DomainId, out var newIntensity) && newIntensity != cd.LinkIntensity)
+            foreach (var cd in Chore!.ChoreDomains)
             {
-                cd.LinkIntensity = newIntensity;
-                await choreDomainRepository.UpdateChoreDomainAsync(cd);
+                if (intensities.TryGetValue(cd.DomainId, out var newIntensity) && newIntensity != cd.LinkIntensity)
+                {
+                    cd.LinkIntensity = newIntensity;
+                    await choreDomainRepository.UpdateChoreDomainAsync(cd);
+                }
             }
         }
 

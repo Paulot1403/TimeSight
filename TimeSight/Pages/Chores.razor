@@ -15,7 +15,7 @@
     <div>
         <h1 class="page-title">Tasks</h1>
         <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
@@ -76,7 +76,7 @@
         {
             <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
                             StartEditing="chore.Id == _newlyAddedChoreId" AllChores="chores" Depth="depth"
-                            OnHierarchyChanged="StateHasChanged">
+                            OnHierarchyChanged="RebuildOrderedChores">
             </ChoreComponent>
         }
     </ul>
