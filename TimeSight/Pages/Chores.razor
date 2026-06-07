@@ -14,8 +14,8 @@
 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
         <h1 class="page-title">Tasks</h1>
-        <p class="text-muted small mb-0">@filteredChores.Count() task@(filteredChores.Count() == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                   "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
+        <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
@@ -47,6 +47,14 @@
             Completed
         </button>
 
+        <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="() => subtasksOnly = !subtasksOnly">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+            </svg>
+            Subtasks only
+        </button>
+
         @foreach (var domain in domains)
         {
             var isActive = selectedDomainIds.Contains(domain.Id!.Value);
@@ -64,10 +72,11 @@
     </div>
 
     <ul class="chores-list">
-        @foreach (var chore in filteredChores)
+        @foreach (var (chore, depth) in orderedChores)
         {
             <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
-                            StartEditing="chore.Id == _newlyAddedChoreId">
+                            StartEditing="chore.Id == _newlyAddedChoreId" AllChores="chores" Depth="depth"
+                            OnHierarchyChanged="StateHasChanged">
             </ChoreComponent>
         }
     </ul>
@@ -82,9 +91,10 @@
     private Guid? _newlyAddedChoreId;
 
     private bool showDone = false;
+    private bool subtasksOnly = false;
     private HashSet<Guid> selectedDomainIds = [];
 
-    private bool IsFiltered => showDone || selectedDomainIds.Count > 0;
+    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
 
     private IEnumerable<Chore> filteredChores
     {
@@ -95,8 +105,30 @@
                 result = result.Where(c => !c.IsDone);
             if (selectedDomainIds.Count > 0)
                 result = result.Where(c => c.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
+            if (subtasksOnly)
+                result = result
+                    .Where(c => c.ParentChoreId != null);
             return result;
         }
+    }
+
+    private List<(Chore chore, int depth)> orderedChores
+    {
+        get
+        {
+            var result = new List<(Chore, int)>();
+            var roots = filteredChores.Where(c => c.ParentChoreId == null);
+            foreach (var root in roots)
+                AppendWithChildren(root, 0, result);
+            return result;
+        }
+    }
+
+    private void AppendWithChildren(Chore chore, int depth, List<(Chore, int)> result)
+    {
+        result.Add((chore, depth));
+        foreach (var child in chores.Where(c => c.ParentChoreId == chore.Id))
+            AppendWithChildren(child, depth + 1, result);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -105,7 +137,6 @@
         domains = await domainRepository.GetDomainsAsync();
         await base.OnInitializedAsync();
     }
-
     public async Task HandleDelete(Chore chore)
     {
         ArgumentNullException.ThrowIfNull(chore.Id);
@@ -134,6 +165,7 @@
     private void ClearFilters()
     {
         showDone = false;
+        subtasksOnly = false;
         selectedDomainIds.Clear();
     }
 

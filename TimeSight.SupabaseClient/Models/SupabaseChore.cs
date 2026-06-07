@@ -33,6 +33,9 @@ public class SupabaseChore : BaseModel
     [Column("description")]
     public string? Description { get; set; }
 
+    [Column("parent_chore_id")]
+    public Guid? ParentChoreId { get; set; }
+
     [Column("done_at")]
     public DateTime? DoneAt { get; set; }
 

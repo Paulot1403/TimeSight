@@ -1,4 +1,4 @@
-﻿@using TimeSight.repositories
+@using TimeSight.repositories
 @inject IChoreRepository choreRepository
 @inject IChoreDomainRepository choreDomainRepository
 @inject IJSRuntime JS
@@ -62,6 +62,55 @@
             </div>
         </div>
 
+        <div class="mb-4">
+            <label class="form-label">Parent task</label>
+            @if (parentChore != null)
+            {
+                <div class="panel-subtask-row">
+                    <span class="panel-subtask-name">@parentChore.Name</span>
+                    <button class="panel-subtask-remove" title="Remove parent link" @onclick="RemoveParent">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="dropdown mt-1">
+                    <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        + parent
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var chore in availableParents)
+                        {
+                            <li><a class="dropdown-item" @onclick="() => SetParent(chore)">@chore.Name</a></li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+
+        @if (subtasks.Any())
+        {
+            <div class="mb-4">
+                <label class="form-label">Subtasks</label>
+                @foreach (var sub in subtasks)
+                {
+                    <div class="panel-subtask-row">
+                        <span class="panel-subtask-name">@sub.Name</span>
+                        <button class="panel-subtask-remove" title="Remove subtask link" @onclick="() => RemoveSubtask(sub)">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+
         @if (DomainsSelected.Any())
         {
             <div class="mb-2">
@@ -93,7 +142,9 @@
 @code {
     [Parameter, EditorRequired] public Chore? Chore { get; set; }
     [Parameter] public ICollection<Domain> DomainsSelected { get; set; } = [];
+    [Parameter] public ICollection<Chore> AllChores { get; set; } = [];
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnHierarchyChanged { get; set; }
 
     private ElementReference nameInputRef;
     private bool _shouldFocus = false;
@@ -102,6 +153,40 @@
     private bool descriptionPreview = false;
     private int editDuration;
     private Dictionary<Guid, int> intensities = [];
+
+    private Chore? parentChore =>
+        Chore?.ParentChoreId != null
+            ? AllChores.FirstOrDefault(c => c.Id == Chore.ParentChoreId)
+            : null;
+
+    private IEnumerable<Chore> subtasks =>
+        Chore?.Id != null
+            ? AllChores.Where(c => c.ParentChoreId == Chore.Id)
+            : [];
+
+    private IEnumerable<Chore> availableParents
+    {
+        get
+        {
+            if (Chore?.Id == null) return [];
+            var descendantIds = GetDescendantIds(Chore);
+            return AllChores.Where(c =>
+                c.Id != Chore.Id &&
+                !descendantIds.Contains(c.Id));
+        }
+    }
+
+    private HashSet<Guid?> GetDescendantIds(Chore chore)
+    {
+        var ids = new HashSet<Guid?>();
+        foreach (var child in AllChores.Where(c => c.ParentChoreId == chore.Id))
+        {
+            ids.Add(child.Id);
+            foreach (var id in GetDescendantIds(child))
+                ids.Add(id);
+        }
+        return ids;
+    }
 
     protected override void OnInitialized()
     {
@@ -127,6 +212,27 @@
 
     private void SetIntensity(Domain domain, ChangeEventArgs e) =>
         intensities[domain.Id!.Value] = int.Parse(e.Value!.ToString()!);
+
+    private async Task SetParent(Chore parent)
+    {
+        Chore!.ParentChoreId = parent.Id;
+        await choreRepository.UpdateChoreAsync(Chore);
+        await OnHierarchyChanged.InvokeAsync();
+    }
+
+    private async Task RemoveSubtask(Chore child)
+    {
+        child.ParentChoreId = null;
+        await choreRepository.UpdateChoreAsync(child);
+        await OnHierarchyChanged.InvokeAsync();
+    }
+
+    private async Task RemoveParent()
+    {
+        Chore!.ParentChoreId = null;
+        await choreRepository.UpdateChoreAsync(Chore);
+        await OnHierarchyChanged.InvokeAsync();
+    }
 
     private async Task Save()
     {

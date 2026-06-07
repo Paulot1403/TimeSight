@@ -23,6 +23,7 @@ public class Chore
     public int Duration { get; set; } = 2;
 
     public string? Description { get; set; }
+    public Guid? ParentChoreId { get; set; }
 
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
 

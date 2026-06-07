@@ -1,4 +1,4 @@
-﻿@using TimeSight.Services
+@using TimeSight.Services
 @using TimeSight.repositories
 @inject IChoreRepository choreRepository
 @inject ChoreDomainService choreDomainService
@@ -9,7 +9,9 @@
 }
 else
 {
-    <li class="chore-card @(Chore.IsDone ? "chore-done" : "")" @onclick="OpenPanel">
+    <li class="chore-card @(Chore.IsDone ? "chore-done" : "") @(Depth > 0 ? "chore-subtask" : "")"
+        style="--chore-depth: @Depth"
+        @onclick="OpenPanel">
         <div class="chore-inner">
 
             <div class="chore-check-wrap" @onclick:stopPropagation>
@@ -41,8 +43,34 @@ else
                                 }
                             </ul>
                         </div>
-                    </div>
+
+                    @if (Chore.ParentChoreId == null)
+                    {
+                        <div class="dropdown" @onclick:stopPropagation>
+                            <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                + parent
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach (var chore in availableParents)
+                                {
+                                    <li><a class="dropdown-item" @onclick="() => SetParent(chore)">@chore.Name</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn-unlink-subtask" type="button" title="Unlink from parent" @onclick="UnlinkFromParent" @onclick:stopPropagation>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                            unlink
+                        </button>
+                    }
                 </div>
+            </div>
 
                 <DeleteButton OnDelete="InvokeOnDeleteAsync" />
 
@@ -50,7 +78,8 @@ else
 
             @if (showPanel)
             {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel" />
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel"
+                                  AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
             }
         </li>
     }
@@ -65,6 +94,15 @@ else
 
     [Parameter]
     public EventCallback OnIsDoneChanged { get; set; }
+
+    [Parameter]
+    public ICollection<Chore> AllChores { get; set; } = [];
+
+    [Parameter]
+    public int Depth { get; set; } = 0;
+
+    [Parameter]
+    public EventCallback OnHierarchyChanged { get; set; }
 
     [Parameter]
     public ICollection<Domain>? allDomains
@@ -94,6 +132,30 @@ else
         }
     }
 
+    private IEnumerable<Chore> availableParents
+    {
+        get
+        {
+            if (Chore?.Id == null) return [];
+            var descendantIds = GetDescendantIds(Chore);
+            return AllChores.Where(c =>
+                c.Id != Chore.Id &&
+                !descendantIds.Contains(c.Id));
+        }
+    }
+
+    private HashSet<Guid?> GetDescendantIds(Chore chore)
+    {
+        var ids = new HashSet<Guid?>();
+        foreach (var child in AllChores.Where(c => c.ParentChoreId == chore.Id))
+        {
+            ids.Add(child.Id);
+            foreach (var id in GetDescendantIds(child))
+                ids.Add(id);
+        }
+        return ids;
+    }
+
     private bool showPanel = false;
 
     protected override void OnInitialized()
@@ -114,6 +176,20 @@ else
     {
         ArgumentNullException.ThrowIfNull(Chore?.Id);
         await OnDelete.InvokeAsync(Chore);
+    }
+
+    private async Task SetParent(Chore parent)
+    {
+        Chore!.ParentChoreId = parent.Id;
+        await choreRepository.UpdateChoreAsync(Chore);
+        await OnHierarchyChanged.InvokeAsync();
+    }
+
+    private async Task UnlinkFromParent()
+    {
+        Chore!.ParentChoreId = null;
+        await choreRepository.UpdateChoreAsync(Chore);
+        await OnHierarchyChanged.InvokeAsync();
     }
 
     private void OpenPanel() => showPanel = true;

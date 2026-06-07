@@ -19,6 +19,7 @@ public static class SupabaseChoreExtensions
             IsDone = supabaseChore.IsDone,
             Duration = supabaseChore.Duration ?? 2,
             Description = supabaseChore.Description,
+            ParentChoreId = supabaseChore.ParentChoreId,
             DoneAt = supabaseChore.DoneAt,
             ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };
