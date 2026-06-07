@@ -16,7 +16,7 @@
 
 .top-row ::deep a,
 .top-row ::deep .btn-link {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-sub);
     white-space: nowrap;
     text-decoration: none;

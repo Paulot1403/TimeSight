@@ -20,7 +20,7 @@
 
 .nav-section-label {
     font-family: var(--font-display);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     letter-spacing: 0.1em;
     color: var(--text-muted);
 }
@@ -42,7 +42,7 @@
 /* Override Bootstrap nav-link for sidebar context */
 .nav-link {
     color: var(--text-sub);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.15s;
 }

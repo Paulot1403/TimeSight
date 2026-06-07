@@ -13,8 +13,8 @@
     --bg-input:     #1c1c24;
     --bg-hover:     #1f1f28;
 
-    --border:       rgba(255, 255, 255, 0.055);
-    --border-light: rgba(255, 255, 255, 0.09);
+    --border:       rgba(255, 255, 255, 0.09);
+    --border-light: rgba(255, 255, 255, 0.15);
     --border-focus: rgba(99, 102, 241, 0.6);
 
     --accent:       #6366f1;
@@ -28,9 +28,9 @@
     --green:        #34d399;
     --amber:        #fbbf24;
 
-    --text:         #dddde8;
-    --text-sub:     #62628a;
-    --text-muted:   #35354a;
+    --text:         #e8e8f2;
+    --text-sub:     #9090bc;
+    --text-muted:   #5e5e82;
 
     --font-ui:      'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-display: 'Barlow Semi Condensed', sans-serif;
@@ -92,7 +92,7 @@
 
 html, body {
     font-family: var(--font-ui);
-    font-size: 15px;
+    font-size: 16px;
     background: var(--bg-base);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
@@ -126,7 +126,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ─── BUTTONS ─────────────────────────────────────────────── */
 .btn {
     font-family: var(--font-ui);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
     border-radius: var(--radius-sm);
     letter-spacing: 0.01em;
@@ -162,7 +162,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-outline-danger {
-    --bs-btn-color:              var(--text-muted);
+    --bs-btn-color:              var(--text-sub);
     --bs-btn-border-color:       transparent;
     --bs-btn-hover-bg:           var(--red-dim);
     --bs-btn-hover-color:        var(--red);
@@ -174,7 +174,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ─── FORMS ──────────────────────────────────────────────── */
 label, .form-label {
     font-family: var(--font-display);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -184,7 +184,7 @@ label, .form-label {
 
 .form-control, .form-select {
     font-family: var(--font-ui);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     background-color: var(--bg-input);
     border-color: var(--border-light);
     color: var(--text);
@@ -232,7 +232,7 @@ label, .form-label {
 }
 .form-check-input:focus { box-shadow: 0 0 0 3px var(--accent-glow); }
 .form-check { display: flex; align-items: center; gap: 0.5rem; margin: 0; }
-.form-check-label { color: var(--text-sub); font-size: 0.8rem; margin: 0; }
+.form-check-label { color: var(--text-sub); font-size: 0.875rem; margin: 0; }
 
 /* ─── RANGE SLIDERS ──────────────────────────────────────── */
 .form-range {
@@ -290,7 +290,7 @@ label, .form-label {
     border: 1px solid var(--border);
     background: var(--bg-card);
     color: var(--text-sub);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: all var(--t-fast) var(--ease);
@@ -319,7 +319,7 @@ label, .form-label {
     border: none;
     background: none;
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     cursor: pointer;
     font-family: var(--font-ui);
     transition: color var(--t-fast) var(--ease);
@@ -376,7 +376,7 @@ label, .form-label {
 .chore-body { flex: 1; min-width: 0; }
 
 .chore-name {
-    font-size: 0.92rem;
+    font-size: 0.975rem;
     font-weight: 500;
     color: var(--text);
     display: block;
@@ -388,7 +388,7 @@ label, .form-label {
     cursor: pointer;
 }
 .chore-name-input {
-    font-size: 0.92rem;
+    font-size: 0.975rem;
     font-weight: 500;
     color: var(--text);
     display: block;
@@ -416,7 +416,7 @@ label, .form-label {
 .metric { display: flex; flex-direction: column; gap: 0.2rem; align-items: flex-start; }
 .metric-label {
     font-family: var(--font-display);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -426,7 +426,7 @@ label, .form-label {
 .metric-row { display: flex; align-items: center; gap: 0.5rem; }
 .metric-val {
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--accent-soft);
     min-width: 10px;
@@ -473,7 +473,7 @@ label, .form-label {
     border: 1px solid color-mix(in srgb, var(--tag-color) 30%, transparent);
     border-radius: var(--radius-pill);
     padding: 0.15rem 0.6rem;
-    font-size: 0.73rem;
+    font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: 0.01em;
     cursor: pointer;
@@ -508,7 +508,7 @@ label, .form-label {
     color: var(--text-muted);
     border-radius: var(--radius-pill);
     padding: 0.15rem 0.6rem;
-    font-size: 0.73rem;
+    font-size: 0.78rem;
     font-family: var(--font-ui);
     font-weight: 500;
     cursor: pointer;
@@ -532,7 +532,7 @@ table.quickgrid {
 }
 .quickgrid thead tr th {
     font-family: var(--font-display);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -555,7 +555,7 @@ table.quickgrid {
     padding: 0.85rem 1.1rem;
     border-bottom: 1px solid var(--border);
     color: var(--text-sub);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     vertical-align: middle;
     background: var(--bg-card);
 }
@@ -745,7 +745,7 @@ table.quickgrid {
 
 .chore-panel-title {
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -826,14 +826,14 @@ table.quickgrid {
 .panel-range-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 0.68rem;
+    font-size: 0.73rem;
     color: var(--text-muted);
     margin-top: 0.3rem;
 }
 
 .panel-metric-val {
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--accent-soft);
 }
@@ -848,7 +848,7 @@ table.quickgrid {
 .domain-intensity-row:last-child { border-bottom: none; }
 
 .domain-intensity-name {
-    font-size: 0.82rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--tag-color, var(--accent-soft));
 }
