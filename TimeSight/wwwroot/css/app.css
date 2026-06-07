@@ -404,7 +404,7 @@ label,
     border-radius: var(--radius);
     transition: border-color var(--t) var(--ease), background var(--t) var(--ease), box-shadow var(--t) var(--ease);
     position: relative;
-    cursor: pointer;
+    cursor: default;
 }
 
 .chore-card:has(.dropdown-menu.show) {
@@ -875,6 +875,7 @@ table.quickgrid {
     background: rgba(0, 0, 0, 0.55);
     z-index: 400;
     animation: panelFadeIn 0.18s var(--ease);
+    cursor: default;
 }
 
 @keyframes panelFadeIn {
@@ -892,7 +893,7 @@ table.quickgrid {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 440px;
+    width: 580px;
     max-width: calc(100vw - 2rem);
     max-height: calc(100vh - 4rem);
     background: var(--bg-elevated);
@@ -903,6 +904,7 @@ table.quickgrid {
     flex-direction: column;
     box-shadow: var(--shadow-lg), 0 0 0 1px rgba(99, 102, 241, 0.08);
     animation: panelAppear 0.2s var(--ease);
+    cursor: default;
 }
 
 @keyframes panelAppear {
@@ -960,6 +962,15 @@ table.quickgrid {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem 1.25rem;
+}
+
+.panel-markdown-preview {
+    min-height: 6rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    background: var(--bg-surface);
+    font-size: 0.9rem;
 }
 
 .chore-panel-footer {

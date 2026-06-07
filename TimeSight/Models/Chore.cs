@@ -22,6 +22,8 @@ public class Chore
     /// </summary>
     public int Duration { get; set; } = 2;
 
+    public string? Description { get; set; }
+
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
 
     public DateTime? DoneAt { get; set; }

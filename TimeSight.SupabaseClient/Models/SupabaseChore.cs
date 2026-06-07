@@ -30,6 +30,9 @@ public class SupabaseChore : BaseModel
     [Column("duration")]
     public int? Duration { get; set; }
 
+    [Column("description")]
+    public string? Description { get; set; }
+
     [Column("done_at")]
     public DateTime? DoneAt { get; set; }
 
