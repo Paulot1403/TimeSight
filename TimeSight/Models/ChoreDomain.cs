@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Supabase.Gotrue;
-
 namespace TimeSight.Models;
 
 public class ChoreDomain
@@ -22,6 +16,7 @@ public class ChoreDomain
         this.DomainId = domain.Id.Value;
     }
     public Guid UserId { get; set; }
+
     public Guid ChoreId { get; set; }
     public Guid DomainId { get; set; }
     public int LinkIntensity { get; set; } = 1;

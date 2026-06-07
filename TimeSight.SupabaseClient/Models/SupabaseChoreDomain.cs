@@ -10,12 +10,15 @@ namespace TimeSight.SupabaseClient.Models;
 [Table("chore_domain")]
 public class SupabaseChoreDomain : BaseModel
 {
+    [PrimaryKey("chore_id", true)]
+    public Guid ChoreId { get; set; }
+
+    [PrimaryKey("domain_id", true)]
+    public Guid DomainId { get; set; }
+
     [Column("user_id")]
     public Guid UserId { get; set; }
-    [Column("chore_id")]
-    public Guid ChoreId { get; set; }
-    [Column("domain_id")]
-    public Guid DomainId { get; set; }
+
     [Column("link_intensity")]
     public int LinkIntensity { get; set; } = 2;
 
