@@ -15,7 +15,7 @@
     <div>
         <h1 class="page-title">Tasks</h1>
         <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
@@ -39,7 +39,7 @@
     </div>
 
     <div class="filter-bar">
-        <button class="filter-pill @(showDone ? "active" : "")" @onclick="() => showDone = !showDone">
+        <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12" />
@@ -47,7 +47,7 @@
             Completed
         </button>
 
-        <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="() => subtasksOnly = !subtasksOnly">
+        <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="ToggleSubtasksOnly">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
@@ -89,6 +89,7 @@
     private List<Chore> chores = [];
 
     private Guid? _newlyAddedChoreId;
+    private List<Guid>? _sortedChoreIds;
 
     private bool showDone = false;
     private bool subtasksOnly = false;
@@ -107,21 +108,36 @@
                 result = result.Where(c => c.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
             if (subtasksOnly)
                 result = result
-                    .Where(c => c.ParentChoreId != null);
+                    .Where(c => !chores.Any(c2 => c2.ParentChoreId == c.Id));
             return result;
         }
     }
-
-    private List<(Chore chore, int depth)> orderedChores
+    private IEnumerable<Chore> roots
     {
         get
         {
-            var result = new List<(Chore, int)>();
-            var roots = filteredChores.Where(c => c.ParentChoreId == null);
-            foreach (var root in roots)
-                AppendWithChildren(root, 0, result);
-            return result;
+            var filteredChoresList = filteredChores.ToList();
+
+            var filteredIds = filteredChoresList.Select(c => c.Id!.Value).ToHashSet();
+            return filteredChoresList.Where(c =>
+                c.ParentChoreId == null ||
+                !filteredIds.Contains(c.ParentChoreId.Value));
         }
+    }
+
+    private List<(Chore chore, int depth)> orderedChores = [];
+
+    private void RebuildOrderedChores()
+    {
+        var result = new List<(Chore, int)>();
+
+        var orderedRoots = roots;
+        if (_sortedChoreIds != null)
+            orderedRoots = orderedRoots.OrderBy(c => _sortedChoreIds.IndexOf(c.Id!.Value));
+
+        foreach (var root in orderedRoots)
+            AppendWithChildren(root, 0, result);
+        orderedChores = result;
     }
 
     private void AppendWithChildren(Chore chore, int depth, List<(Chore, int)> result)
@@ -135,13 +151,16 @@
     {
         chores = await choreRepository.GetChoresAsync();
         domains = await domainRepository.GetDomainsAsync();
+        RebuildOrderedChores();
         await base.OnInitializedAsync();
     }
+
     public async Task HandleDelete(Chore chore)
     {
         ArgumentNullException.ThrowIfNull(chore.Id);
         await choreRepository.DeleteChoreAsync(chore.Id.Value);
         chores.Remove(chore);
+        RebuildOrderedChores();
     }
 
     public async Task AddChore()
@@ -154,12 +173,29 @@
         chore = await choreRepository.CreateChoreAsync(chore);
         _newlyAddedChoreId = chore.Id;
         chores.Add(chore);
+        RebuildOrderedChores();
+    }
+
+    private void ToggleShowDone()
+    {
+        showDone = !showDone;
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
     }
 
     private void ToggleDomainFilter(Guid domainId)
     {
         if (!selectedDomainIds.Remove(domainId))
             selectedDomainIds.Add(domainId);
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
+    }
+
+    private void ToggleSubtasksOnly()
+    {
+        subtasksOnly = !subtasksOnly;
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
     }
 
     private void ClearFilters()
@@ -167,10 +203,13 @@
         showDone = false;
         subtasksOnly = false;
         selectedDomainIds.Clear();
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
     }
 
     public void Order()
     {
-        chores = orderChoresService.OrderChores(chores, domains);
+        _sortedChoreIds = orderChoresService.OrderChores(roots.ToList(), domains);
+        RebuildOrderedChores();
     }
 }

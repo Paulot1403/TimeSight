@@ -9,7 +9,7 @@ namespace TimeSight.Services;
 
 public class OrderChoresService
 {
-    public List<Chore> OrderChores(List<Chore> chores, List<Domain> domains)
+    public List<Guid> OrderChores(List<Chore> chores, List<Domain> domains)
     {
         Dictionary<Guid, Chore> choresDic = chores.ToDictionary(
             c => (Guid)c.Id,
@@ -74,7 +74,7 @@ public class OrderChoresService
         List<Guid> missingChoresId = [.. choresDic.Keys.Where(id => !sortedChores.Contains(id))];
         sortedChores.AddRange(missingChoresId);
 
-        return [.. sortedChores.Select(s => choresDic.GetValueOrDefault(s))];
+        return sortedChores;
     }
 
     private static int GetPriorityScore(Chore chore, Domain domain, int doneScore)
