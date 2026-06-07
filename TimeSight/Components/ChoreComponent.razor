@@ -10,8 +10,7 @@
 else
 {
     <li class="chore-card @(Chore.IsDone ? "chore-done" : "") @(Depth > 0 ? "chore-subtask" : "")"
-        style="--chore-depth: @Depth"
-        @onclick="OpenPanel">
+        style="--chore-depth: @Depth" @onclick="OpenPanel">
         <div class="chore-inner">
 
             <div class="chore-check-wrap" @onclick:stopPropagation>
@@ -24,22 +23,15 @@ else
             <div class="chore-body">
                 <span class="chore-name">@Chore.Name</span>
                 <div class="chore-tags" @onclick:stopPropagation>
-                    @foreach (var domain in domainsSelected)
+                    @if (Chore.ParentChoreId == null)
                     {
-                        @if (Chore.ParentChoreId == null)
+                        @foreach (var domain in domainsSelected)
                         {
                             <button type="button" class="domain-tag" @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
                                     style="--tag-color:@(domain.Color ?? "#6366f1")">
                                 @domain.Name<span class="domain-tag-x">x</span>
                             </button>
                         }
-                        else
-                        {
-                            <span class="domain-tag" style="--tag-color:@(domain.Color ?? "#6366f1")">@domain.Name</span>
-                        }
-                    }
-                    @if (Chore.ParentChoreId == null)
-                    {
                         <div class="dropdown">
                             <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 + domain
@@ -49,38 +41,13 @@ else
                                 {
                                     <li><a class="dropdown-item"
                                                @onclick="() => choreDomainService.AddLink(Chore, domain)">@domain.Name</a></li>
-                                }
-                            </ul>
-                        </div>
-                    }
+                                    }
+                                </ul>
+                            </div>
+                        }
 
-                    @if (Chore.ParentChoreId == null)
-                    {
-                        <div class="dropdown" @onclick:stopPropagation>
-                            <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                + parent
-                            </button>
-                            <ul class="dropdown-menu">
-                                @foreach (var chore in availableParents)
-                                {
-                                    <li><a class="dropdown-item" @onclick="() => SetParent(chore)">@chore.Name</a></li>
-                                }
-                            </ul>
-                        </div>
-                    }
-                    else
-                    {
-                        <button class="btn-unlink-subtask" type="button" title="Unlink from parent" @onclick="UnlinkFromParent" @onclick:stopPropagation>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                            unlink
-                        </button>
-                    }
+                    </div>
                 </div>
-            </div>
 
                 <DeleteButton OnDelete="InvokeOnDeleteAsync" />
 
@@ -88,8 +55,8 @@ else
 
             @if (showPanel)
             {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel"
-                                  AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel" AllChores="AllChores"
+                                  OnHierarchyChanged="OnHierarchyChanged" />
             }
         </li>
     }
