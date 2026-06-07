@@ -56,8 +56,8 @@ else
                     <span class="metric-label">Duration</span>
                     <div class="metric-row">
                         <span class="metric-val">@Chore.Duration</span>
-                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Duration" @bind:event="oninput"
-                               id="dur-@Chore.Id">
+                        <input type="range" class="form-range" min="1" max="@Chore.MAX_DURATION" @bind="Chore.Duration"
+                               @bind:event="oninput" id="dur-@Chore.Id">
                     </div>
                 </div>
             </div>
