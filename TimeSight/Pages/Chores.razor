@@ -179,6 +179,7 @@
     private void ToggleShowDone()
     {
         showDone = !showDone;
+        _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
@@ -187,6 +188,7 @@
     {
         if (!selectedDomainIds.Remove(domainId))
             selectedDomainIds.Add(domainId);
+        _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
@@ -194,6 +196,7 @@
     private void ToggleSubtasksOnly()
     {
         subtasksOnly = !subtasksOnly;
+        _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
@@ -203,6 +206,7 @@
         showDone = false;
         subtasksOnly = false;
         selectedDomainIds.Clear();
+        _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
