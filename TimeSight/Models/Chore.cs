@@ -7,6 +7,7 @@ namespace TimeSight.Models;
 
 public class Chore
 {
+    public const int MAX_DURATION = 4;
     public required Guid UserId { get; set; }
     public required string Name { get; set; }
 
@@ -17,11 +18,7 @@ public class Chore
     public bool IsDone { get; set; } = false;
 
     /// <summary>
-    /// De 1 à 4 ?
-    /// </summary>
-    public int Significance { get; set; } = 2;
-    /// <summary>
-    /// De 1 à 4 ?
+    /// De 1 à <see cref="Chore.MAX_DURATION"/> ?
     /// </summary>
     public int Duration { get; set; } = 2;
 
@@ -32,4 +29,18 @@ public class Chore
     // public DateTime? ScheduledStartDate { get; set; }
     // public DateTime? ScheduledEndDate { get; set; }
 
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="domain"></param>
+    /// <returns>Le score que donne cette tâche au domaine</returns>
+    public int GetScoreForDomain(Domain domain)
+    {
+        ChoreDomain? cd = ChoreDomains.FirstOrDefault(c => c.IsMadeOf(this, domain));
+        if (cd == null)
+            return 0;
+
+        return cd.LinkIntensity;
+    }
 }

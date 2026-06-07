@@ -27,12 +27,6 @@ public class SupabaseChore : BaseModel
     /// De 1 à 4 ?
     /// </summary>
     ///     
-    [Column("significance")]
-    public int? Significance { get; set; }
-    /// <summary>
-    /// De 1 à 4 ?
-    /// </summary>
-    ///     
     [Column("duration")]
     public int? Duration { get; set; }
 

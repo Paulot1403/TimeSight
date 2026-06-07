@@ -17,7 +17,6 @@ public static class ChoreExtensions
             UserId = chore.UserId,
             Name = chore.Name,
             IsDone = chore.IsDone,
-            Significance = chore.Significance,
             Duration = chore.Duration,
             DoneAt = chore.DoneAt,
             SupabaseChoreDomains = chore.ChoreDomains.Select(cd => cd.ToSupabaseChoreDomain()).ToList()

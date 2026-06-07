@@ -53,14 +53,6 @@ else
 
             <div class="chore-metrics">
                 <div class="metric">
-                    <span class="metric-label">Impact</span>
-                    <div class="metric-row">
-                        <span class="metric-val">@Chore.Significance</span>
-                        <input type="range" class="form-range" min="1" max="4" @bind="Chore.Significance"
-                               @bind:event="oninput" id="sig-@Chore.Id">
-                    </div>
-                </div>
-                <div class="metric">
                     <span class="metric-label">Duration</span>
                     <div class="metric-row">
                         <span class="metric-val">@Chore.Duration</span>

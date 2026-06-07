@@ -19,15 +19,19 @@ public class OrderChoresService
              d => d);
         List<ChoreDomain> choreDomains = [.. chores.SelectMany(c => c.ChoreDomains)];
 
-        List<ChoreScoreForDomain> scoreForDomains = [ .. choreDomains.Select(cd =>
+        List<ChorePriorityForDomain> prioritiesForDomains = [ .. choreDomains.Select(cd =>
         {
-            return new ChoreScoreForDomain()
+            Chore chore = choresDic.GetValueOrDefault(cd.ChoreId);
+            Domain domain = domainsDic.GetValueOrDefault(cd.DomainId);
+            int doneScore = chore.GetScoreForDomain(domain);
+            int priorityScore = GetPriorityScore(chore,domain,doneScore);
+
+            return new ChorePriorityForDomain()
             {
                 ChoreId = cd.ChoreId,
                 DomainId = cd.DomainId,
-                Score = GetScoreThatGivesChoreForDomain(
-                    choresDic.GetValueOrDefault(cd.ChoreId),
-                    domainsDic.GetValueOrDefault(cd.DomainId))
+                Priority = priorityScore,
+                DoneScore=doneScore
             };
         })];
 
@@ -42,28 +46,28 @@ public class OrderChoresService
         List<Guid> sortedChores = [];
 
 
-        while (scoreForDomains.Count != 0 && domainsScore.Count != 0)
+        while (prioritiesForDomains.Count != 0 && domainsScore.Count != 0)
         {
             DomainScoreComputation leastDoneDomain = domainsScore.MinBy(d => d.CurrentScore)!;
             // TODO  : manage case when no chores is done with this domain and add one to say that this domain needs tasks
 
-            ICollection<ChoreScoreForDomain> scoresForThisDomain = [.. scoreForDomains
+            ICollection<ChorePriorityForDomain> prioritiesForThisDomain = [.. prioritiesForDomains
                 .Where(s => s.DomainId == leastDoneDomain.DomainId)];
-            if (scoresForThisDomain.Count == 0)
+            if (prioritiesForThisDomain.Count == 0)
             {
                 domainsScore.Remove(leastDoneDomain);
                 continue;
             }
 
-            ChoreScoreForDomain maximumScoreForThisDomain = scoresForThisDomain.MaxBy(s => s.Score);
-            Guid choreIdToDo = maximumScoreForThisDomain.ChoreId;
+            ChorePriorityForDomain maximumPriorityForThisDomain = prioritiesForThisDomain.MaxBy(s => s.Priority);
+            Guid choreIdToDo = maximumPriorityForThisDomain.ChoreId;
             sortedChores.Add(choreIdToDo);
-            ICollection<ChoreScoreForDomain> scoresForThisChore = [.. scoreForDomains.Where(s => s.ChoreId == choreIdToDo)];
-            foreach (var score in scoresForThisChore)
+            ICollection<ChorePriorityForDomain> prioritiesForThisChore = [.. prioritiesForDomains.Where(s => s.ChoreId == choreIdToDo)];
+            foreach (var priority in prioritiesForThisChore)
             {
                 //update score of domain
-                domainsScore.First(d => d.DomainId == score.DomainId).CurrentScore += score.Score;
-                scoreForDomains.Remove(score);
+                domainsScore.First(d => d.DomainId == priority.DomainId).CurrentScore += priority.DoneScore;
+                prioritiesForDomains.Remove(priority);
             }
         }
 
@@ -72,12 +76,10 @@ public class OrderChoresService
 
         return [.. sortedChores.Select(s => choresDic.GetValueOrDefault(s))];
     }
-    private int GetScoreThatGivesChoreForDomain(Chore chore, Domain domain)
-    {
-        ChoreDomain? cd = chore.ChoreDomains.FirstOrDefault(c => c.IsMadeOf(chore, domain));
-        if (cd == null)
-            return 0;
 
-        return cd.LinkIntensity + chore.Duration + chore.Significance;
+    private static int GetPriorityScore(Chore chore, Domain domain, int doneScore)
+    {
+        return doneScore + chore.Duration;
     }
+
 }
