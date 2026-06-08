@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,6 +33,23 @@ public class Chore
     // public DateTime? ScheduledStartDate { get; set; }
     // public DateTime? ScheduledEndDate { get; set; }
 
+
+    public bool IsSubtask => ParentChoreId != null;
+
+    public Chore? GetRootOfThis(ICollection<Chore> chores)
+    {
+        if (ParentChoreId == null)
+        { return this; }
+
+        Chore parentChore = chores.FirstOrDefault(c => c.Id == ParentChoreId);
+
+        if (parentChore == null)
+        {
+            throw new ArgumentException("chores ne contient pas le parent");
+        }
+
+        return parentChore.GetRootOfThis(chores);
+    }
 
     /// <summary>
     /// 

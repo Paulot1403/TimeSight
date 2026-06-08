@@ -91,16 +91,12 @@ else
     [Parameter]
     public bool StartEditing { get; set; }
 
-    private Chore? parentChore => Chore?.ParentChoreId != null
-        ? AllChores.FirstOrDefault(c => c.Id == Chore.ParentChoreId)
-        : null;
-
     private ICollection<Domain> domainsSelected
     {
         get
         {
             if (Chore == null) return [];
-            var source = parentChore ?? Chore;
+            var source = Chore.GetRootOfThis(AllChores);
             return [.. allDomains.Where(d => source.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
         }
     }
