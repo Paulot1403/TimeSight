@@ -14,26 +14,25 @@ public class OrderChoresService
         Dictionary<Guid, Domain> domainsDic = domains.ToDictionary(
              d => (Guid)d.Id,
              d => d);
-        List<ChoreDomain> choreDomains = [.. choresDic.Values.SelectMany(c => c.ChoreDomains)];
 
-        List<ChorePriorityForDomain> prioritiesForDomains = [ .. choreDomains.Select(cd =>
+        List<ChorePriorityForDomain> prioritiesForDomains = [ .. choresDic.Values.SelectMany(originalChore =>
         {
-            if (!choresDic.TryGetValue(cd.ChoreId,out Chore? chore))
-            {
-                throw new ArgumentException("We have choreDomains but we can't find the chore associated with");
-            }
+            var choreDomainsAssociated = originalChore.GetRootOfThis().ChoreDomains;
 
-            Domain domain = domainsDic.GetValueOrDefault(cd.DomainId);
-            int doneScore = chore.GetScoreForDomain(domain);
-            int priorityScore = GetPriorityScore(chore,domain,doneScore);
+            return choreDomainsAssociated.Select(cd=>{
+                Domain domain = domainsDic.GetValueOrDefault(cd.DomainId);
+                int doneScore = originalChore.GetScoreForDomain(domain);
+                int priorityScore = GetPriorityScore(originalChore,domain,doneScore);
 
-            return new ChorePriorityForDomain()
-            {
-                ChoreId = cd.ChoreId,
-                DomainId = cd.DomainId,
-                Priority = priorityScore,
-                DoneScore=doneScore
-            };
+                return new ChorePriorityForDomain()
+                {
+                    ChoreId = originalChore.Id,
+                    DomainId = cd.DomainId,
+                    Priority = priorityScore,
+                    DoneScore = doneScore
+                };
+            });
+
         })];
 
         List<DomainScoreComputation> domainsScore = [.. domains.Select(d =>

@@ -39,31 +39,35 @@
     </div>
 
     <div class="filter-bar">
-        <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Completed
-        </button>
-
-        <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="ToggleSubtasksOnly">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-            </svg>
-            Subtasks only
-        </button>
-
-        @foreach (var domain in domains)
-        {
-            var isActive = selectedDomainIds.Contains(domain.Id!.Value);
-            <button class="filter-pill @(isActive ? "active" : "")" style="--pill-color:@(domain.Color ?? "#6366f1")"
-                    @onclick="() => ToggleDomainFilter(domain.Id!.Value)">
-                <span class="filter-pill-dot"></span>
-                @domain.Name
+        <div class="filter-row">
+            <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Completed
             </button>
-        }
+
+            <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="ToggleSubtasksOnly">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+                Subtasks only
+            </button>
+        </div>
+
+        <div class="filter-row">
+            @foreach (var domain in domains)
+            {
+                var isActive = selectedDomainIds.Contains(domain.Id!.Value);
+                <button class="filter-pill @(isActive ? "active" : "")" style="--pill-color:@(domain.Color ?? "#6366f1")"
+                        @onclick="() => ToggleDomainFilter(domain.Id!.Value)">
+                    <span class="filter-pill-dot"></span>
+                    @domain.Name
+                </button>
+            }
+        </div>
 
         @if (IsFiltered)
         {
@@ -74,7 +78,7 @@
     <ul class="chores-list">
         @foreach (var (chore, depth) in orderedChores)
         {
-            <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
+            <ChoreComponent @key="chore.Id" Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
                             StartEditing="chore.Id == _newlyAddedChoreId" AllChores="choresDic.Values" Depth="depth"
                             OnHierarchyChanged="RebuildOrderedChores">
             </ChoreComponent>
@@ -103,7 +107,8 @@
     {
         choresDic = await choreService.GetChoresAsync();
         domains = await domainRepository.GetDomainsAsync();
-        await base.OnInitializedAsync();
+        RebuildOrderedChores();
+        await base.OnParametersSetAsync();
     }
 
     private void RebuildOrderedChores()

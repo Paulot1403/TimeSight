@@ -30,7 +30,11 @@ else
                             <button type="button" class="domain-tag" disabled="@(Chore.ParentChoreId != null)"
                                     @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
                                     style="--tag-color:@(domain.Color ?? "#6366f1")">
-                                @domain.Name<span class="domain-tag-x">x</span>
+                                @domain.Name
+                                @if (Chore.ParentChoreId == null)
+                                {
+                                    <span class="domain-tag-x">x</span>
+                                }
                             </button>
                         }
                     }
@@ -63,8 +67,8 @@ else
 
             @if (showPanel)
             {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" OnClose="ClosePanel" AllChores="AllChores"
-                                  OnHierarchyChanged="OnHierarchyChanged" />
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains"
+                                  OnClose="ClosePanel" AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
             }
         </li>
     }

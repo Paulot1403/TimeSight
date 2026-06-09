@@ -2,6 +2,7 @@
 @using TimeSight.repositories
 @inject ChoreService choreService
 @inject IChoreDomainRepository choreDomainRepository
+@inject ChoreDomainService choreDomainService
 @inject IJSRuntime JS
 
 <div class="chore-panel-backdrop" @onclick="OnClose" @onclick:stopPropagation></div>
@@ -114,16 +115,52 @@
             </div>
         }
 
-        @if (DomainsSelected.Any())
+        @if (!isSubtask)
         {
-            <div class="mb-2">
-                <label class="form-label">
-                    Domain intensity
-                    @if (isSubtask)
-                    {
-                        <span class="text-muted ms-1" style="font-size:0.75rem">— inherited from parent</span>
-                    }
-                </label>
+            <div class="mb-4">
+                <label class="form-label">Domains</label>
+                @foreach (var domain in LocalDomainsSelected)
+                {
+                    <div class="domain-intensity-row">
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                            <span class="domain-intensity-name" style="--tag-color:@(domain.Color ?? "#6366f1")">
+                                @domain.Name
+                            </span>
+                        </div>
+                        <div class="domain-intensity-control">
+                            <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)"
+                                   @oninput="e => SetIntensity(domain, e)" />
+                            <span class="panel-metric-val">@GetIntensity(domain)</span>
+                        </div>
+                    </div>
+                }
+                @if (LocalDomainsNotSelected.Any())
+                {
+                    <div class="dropdown mt-2">
+                        <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            + domain
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach (var domain in LocalDomainsNotSelected)
+                            {
+                                <li><a class="dropdown-item" @onclick="() => AddDomain(domain)">@domain.Name</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+        else if (DomainsSelected.Any())
+        {
+            <div class="mb-4">
+                <label class="form-label">Domain intensity <span class="text-muted ms-1" style="font-size:0.75rem">— inherited from parent</span></label>
                 @foreach (var domain in DomainsSelected)
                 {
                     <div class="domain-intensity-row">
@@ -131,8 +168,7 @@
                             @domain.Name
                         </span>
                         <div class="domain-intensity-control">
-                            <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)"
-                                   @oninput="e => SetIntensity(domain, e)" disabled="@isSubtask" />
+                            <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)" disabled />
                             <span class="panel-metric-val">@GetIntensity(domain)</span>
                         </div>
                     </div>
@@ -150,9 +186,16 @@
 @code {
     [Parameter, EditorRequired] public Chore? Chore { get; set; }
     [Parameter] public ICollection<Domain> DomainsSelected { get; set; } = [];
+    [Parameter] public ICollection<Domain> AllDomains { get; set; } = [];
     [Parameter] public ICollection<Chore> AllChores { get; set; } = [];
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnHierarchyChanged { get; set; }
+
+    private ICollection<Domain> LocalDomainsSelected =>
+        Chore == null ? [] : [.. AllDomains.Where(d => Chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
+
+    private ICollection<Domain> LocalDomainsNotSelected =>
+        [.. AllDomains.Except(LocalDomainsSelected)];
 
     private ElementReference nameInputRef;
     private bool _shouldFocus = false;
@@ -224,6 +267,18 @@
 
     private void SetIntensity(Domain domain, ChangeEventArgs e) =>
         intensities[domain.Id!.Value] = int.Parse(e.Value!.ToString()!);
+
+    private async Task AddDomain(Domain domain)
+    {
+        await choreDomainService.AddLink(Chore!, domain);
+        intensities[domain.Id!.Value] = 1;
+    }
+
+    private async Task RemoveDomain(Domain domain)
+    {
+        await choreDomainService.RemoveLink(Chore!, domain);
+        intensities.Remove(domain.Id!.Value);
+    }
 
     private async Task SetParent(Chore parent)
     {

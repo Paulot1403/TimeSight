@@ -39,7 +39,7 @@ public class Chore
 
     public bool IsSubtask => ParentChoreId != null;
 
-    public Chore? GetRootOfThis()
+    public Chore GetRootOfThis()
     {
         if (ParentChoreId == null)
         { return this; }
@@ -59,7 +59,7 @@ public class Chore
     /// <returns>Le score que donne cette tâche au domaine</returns>
     public int GetScoreForDomain(Domain domain)
     {
-        ChoreDomain? cd = ChoreDomains.FirstOrDefault(c => c.IsMadeOf(this, domain));
+        ChoreDomain? cd = GetRootOfThis().ChoreDomains.FirstOrDefault(c => c.IsMadeOf(this, domain));
         if (cd == null)
             return 0;
 
