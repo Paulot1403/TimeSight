@@ -12,7 +12,7 @@ public class ChoreDomain
         ArgumentNullException.ThrowIfNull(domain.Id, "domain doit avoir un id de fourni");
 
         this.UserId = chore.UserId;
-        this.ChoreId = chore.Id.Value;
+        this.ChoreId = chore.Id;
         this.DomainId = domain.Id.Value;
     }
     public Guid UserId { get; set; }
@@ -26,6 +26,6 @@ public class ChoreDomain
         ArgumentNullException.ThrowIfNull(chore.Id, "chore doit avoir un id de fourni");
         ArgumentNullException.ThrowIfNull(domain.Id, "domain doit avoir un id de fourni");
 
-        return this.ChoreId == chore.Id.Value && this.DomainId == domain.Id.Value;
+        return this.ChoreId == chore.Id && this.DomainId == domain.Id.Value;
     }
 }

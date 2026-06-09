@@ -12,7 +12,7 @@ public class ChoreDomainService(IChoreDomainRepository choreDomainRepository)
     public async Task RemoveLink(Chore chore, Domain domain)
     {
         chore.ChoreDomains.RemoveAll(cd => cd.IsMadeOf(chore, domain));
-        await choreDomainRepository.DeleteChoreDomainAsync(chore.Id!.Value, domain.Id!.Value);
+        await choreDomainRepository.DeleteChoreDomainAsync(chore.Id, domain.Id!.Value);
     }
 
     public async Task AddLink(Chore chore, Domain domain)

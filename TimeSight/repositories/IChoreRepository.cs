@@ -10,7 +10,7 @@ public interface IChoreRepository
 {
     Task<List<Chore>> GetChoresAsync();
 
-    Task<Chore> CreateChoreAsync(Chore chore);
+    Task<Chore> CreateChoreAsync(Guid userId, String name = "");
 
     Task<Chore> UpdateChoreAsync(Chore chore);
 

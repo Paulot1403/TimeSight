@@ -18,6 +18,7 @@ builder.Services.AddSingleton<IDomainRepository, SupabaseDomainRepository>();
 builder.Services.AddSingleton<IChoreDomainRepository, SupabaseChoreDomainRepository>();
 builder.Services.AddSingleton<OrderChoresService>();
 builder.Services.AddSingleton<ChoreDomainService>();
+builder.Services.AddSingleton<ChoreService>();
 
 builder.Services.AddSupabase().Configure(options =>
 {

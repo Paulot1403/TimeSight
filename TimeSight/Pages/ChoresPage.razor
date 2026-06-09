@@ -5,9 +5,9 @@
 @page "/"
 
 @attribute [Authorize]
-@inject IChoreRepository choreRepository;
 @inject IDomainRepository domainRepository;
 @inject OrderChoresService orderChoresService;
+@inject ChoreService choreService;
 
 <PageTitle>Tasks — TimeSight</PageTitle>
 
@@ -15,7 +15,7 @@
     <div>
         <h1 class="page-title">Tasks</h1>
         <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           "s")@(IsFiltered ? $" of {chores.Count}" : "")</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
@@ -75,7 +75,7 @@
         @foreach (var (chore, depth) in orderedChores)
         {
             <ChoreComponent Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
-                            StartEditing="chore.Id == _newlyAddedChoreId" AllChores="chores" Depth="depth"
+                            StartEditing="chore.Id == _newlyAddedChoreId" AllChores="choresDic.Values" Depth="depth"
                             OnHierarchyChanged="RebuildOrderedChores">
             </ChoreComponent>
         }
@@ -86,7 +86,8 @@
     public Guid? UserId { get; set; }
 
     private List<Domain> domains = [];
-    private List<Chore> chores = [];
+
+    private IDictionary<Guid, Chore> choresDic = new Dictionary<Guid, Chore>();
 
     private Guid? _newlyAddedChoreId;
     private List<Guid>? _sortedChoreIds;
@@ -97,45 +98,25 @@
 
     private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
 
-    private IEnumerable<Chore> filteredChores
-    {
-        get
-        {
-            var result = chores.AsEnumerable();
-            if (!showDone)
-                result = result.Where(c => !c.IsDone);
-            if (selectedDomainIds.Count > 0)
-                result = result.Where(c => c.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
-            if (subtasksOnly)
-                result = result
-                    .Where(c => !chores.Any(c2 => c2.ParentChoreId == c.Id));
-            return result;
-        }
-    }
-    private IEnumerable<Chore> roots
-    {
-        get
-        {
-            var filteredChoresList = filteredChores.ToList();
-
-            var filteredIds = filteredChoresList.Select(c => c.Id!.Value).ToHashSet();
-            return filteredChoresList.Where(c =>
-                c.ParentChoreId == null ||
-                !filteredIds.Contains(c.ParentChoreId.Value));
-        }
-    }
-
     private List<(Chore chore, int depth)> orderedChores = [];
+    protected override async Task OnParametersSetAsync()
+    {
+        choresDic = await choreService.GetChoresAsync();
+        domains = await domainRepository.GetDomainsAsync();
+        await base.OnInitializedAsync();
+    }
 
     private void RebuildOrderedChores()
     {
         var result = new List<(Chore, int)>();
 
-        var orderedRoots = roots;
+        var orderedRoots = GetRoots().Values;
         if (_sortedChoreIds != null)
-            orderedRoots = orderedRoots.OrderBy(c => _sortedChoreIds.IndexOf(c.Id!.Value));
+            orderedRoots = orderedRoots
+                .OrderBy(c => _sortedChoreIds.IndexOf(c.Id))
+                .ToList();
 
-        foreach (var root in orderedRoots)
+        foreach (Chore root in orderedRoots)
             AppendWithChildren(root, 0, result);
         orderedChores = result;
     }
@@ -143,36 +124,25 @@
     private void AppendWithChildren(Chore chore, int depth, List<(Chore, int)> result)
     {
         result.Add((chore, depth));
-        foreach (var child in chores.Where(c => c.ParentChoreId == chore.Id))
+        foreach (var child in chore.Children)
             AppendWithChildren(child, depth + 1, result);
     }
 
-    protected override async Task OnParametersSetAsync()
-    {
-        chores = await choreRepository.GetChoresAsync();
-        domains = await domainRepository.GetDomainsAsync();
-        RebuildOrderedChores();
-        await base.OnInitializedAsync();
-    }
 
-    public async Task HandleDelete(Chore chore)
+
+    private async Task HandleDelete(Chore chore)
     {
-        ArgumentNullException.ThrowIfNull(chore.Id);
-        await choreRepository.DeleteChoreAsync(chore.Id.Value);
-        chores.Remove(chore);
+        ArgumentNullException.ThrowIfNull(chore);
+        await choreService.DeleteChoreAsync(chore);
+        choresDic.Remove(chore.Id);
         RebuildOrderedChores();
     }
 
-    public async Task AddChore()
+    private async Task AddChore()
     {
-        Chore chore = new Chore()
-        {
-            UserId = UserId!.Value,
-            Name = "New task"
-        };
-        chore = await choreRepository.CreateChoreAsync(chore);
+        Chore chore = await choreService.CreateChoreAsync(UserId!.Value);
         _newlyAddedChoreId = chore.Id;
-        chores.Add(chore);
+        choresDic.Add(chore.Id, chore);
         RebuildOrderedChores();
     }
 
@@ -210,10 +180,29 @@
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
-
-    public void Order()
+    private IDictionary<Guid, Chore> GetFilteredChoresDic()
     {
-        _sortedChoreIds = orderChoresService.OrderChores(roots.ToList(), domains);
+
+        var result = choresDic.AsEnumerable();
+        if (!showDone)
+            result = result.Where(c => !c.Value.IsDone);
+        if (selectedDomainIds.Count > 0)
+            result = result.Where(c => c.Value.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
+        if (subtasksOnly)
+            result = result
+            .Where(c => !choresDic.Values.Any(c2 => c2.ParentChoreId == c.Key));
+        return result.ToDictionary();
+    }
+    private IDictionary<Guid, Chore> GetRoots()
+    {
+        IDictionary<Guid, Chore> filteredChoresDic = GetFilteredChoresDic();
+        return filteredChoresDic.Where(c =>
+        c.Value.ParentChoreId == null ||
+        !filteredChoresDic.ContainsKey(c.Value.ParentChoreId.Value)).ToDictionary();
+    }
+    private void Order()
+    {
+        _sortedChoreIds = orderChoresService.OrderChores(GetRoots(), domains);
         RebuildOrderedChores();
     }
 }

@@ -23,21 +23,26 @@ else
             <div class="chore-body">
                 <span class="chore-name">@Chore.Name</span>
                 <div class="chore-tags" @onclick:stopPropagation>
-                    @if (Chore.ParentChoreId == null)
+                    @if (Depth == 0)
                     {
-                        @foreach (var domain in domainsSelected)
+                        @foreach (var domain in DomainsSelected)
                         {
-                            <button type="button" class="domain-tag" @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
+                            <button type="button" class="domain-tag" disabled="@(Chore.ParentChoreId != null)"
+                                    @onclick="() => choreDomainService.RemoveLink(Chore, domain)"
                                     style="--tag-color:@(domain.Color ?? "#6366f1")">
                                 @domain.Name<span class="domain-tag-x">x</span>
                             </button>
                         }
+                    }
+
+                    @if (Chore.ParentChoreId == null)
+                    {
                         <div class="dropdown">
                             <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 + domain
                             </button>
                             <ul class="dropdown-menu">
-                                @foreach (var domain in domainsNotSelected)
+                                @foreach (var domain in DomainsNotSelected)
                                 {
                                     <li><a class="dropdown-item"
                                                @onclick="() => choreDomainService.AddLink(Chore, domain)">@domain.Name</a></li>
@@ -49,13 +54,16 @@ else
                     </div>
                 </div>
 
-                <DeleteButton OnDelete="InvokeOnDeleteAsync" />
+                @if (Chore.Children.Count == 0)
+                {
+                    <DeleteButton OnDelete="InvokeOnDeleteAsync" />
+                }
 
             </div>
 
             @if (showPanel)
             {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="domainsSelected" OnClose="ClosePanel" AllChores="AllChores"
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" OnClose="ClosePanel" AllChores="AllChores"
                                   OnHierarchyChanged="OnHierarchyChanged" />
             }
         </li>
@@ -67,21 +75,6 @@ else
     public Chore? Chore { get; set; }
 
     [Parameter]
-    public EventCallback<Chore> OnDelete { get; set; }
-
-    [Parameter]
-    public EventCallback OnIsDoneChanged { get; set; }
-
-    [Parameter]
-    public ICollection<Chore> AllChores { get; set; } = [];
-
-    [Parameter]
-    public int Depth { get; set; } = 0;
-
-    [Parameter]
-    public EventCallback OnHierarchyChanged { get; set; }
-
-    [Parameter]
     public ICollection<Domain>? allDomains
     {
         get { return field == null ? [] : field; }
@@ -90,27 +83,41 @@ else
 
     [Parameter]
     public bool StartEditing { get; set; }
+    [Parameter]
+    public int Depth { get; set; } = 0;
+    [Parameter]
+    public EventCallback<Chore> OnDelete { get; set; }
 
-    private ICollection<Domain> domainsSelected
+    [Parameter]
+    public EventCallback OnIsDoneChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnHierarchyChanged { get; set; }
+
+    [Parameter]
+    public ICollection<Chore> AllChores { get; set; } = [];
+
+  
+    private ICollection<Domain> DomainsSelected
     {
         get
         {
             if (Chore == null) return [];
-            var source = Chore.GetRootOfThis(AllChores);
+            var source = Chore.GetRootOfThis();
             return [.. allDomains.Where(d => source.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
         }
     }
 
-    private ICollection<Domain>? domainsNotSelected
+    private ICollection<Domain>? DomainsNotSelected
     {
         get
         {
             if (allDomains == null) return [];
-            return allDomains.Except(domainsSelected).ToList();
+            return allDomains.Except(DomainsSelected).ToList();
         }
     }
 
-    private IEnumerable<Chore> availableParents
+    private IEnumerable<Chore> AvailableParents
     {
         get
         {

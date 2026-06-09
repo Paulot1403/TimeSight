@@ -13,7 +13,7 @@ public static class SupabaseChoreExtensions
     {
         return new Chore
         {
-            Id = supabaseChore.Id,
+            Id = supabaseChore.Id!.Value,
             UserId = supabaseChore.UserId,
             Name = supabaseChore.Name,
             IsDone = supabaseChore.IsDone,

@@ -9,19 +9,20 @@ namespace TimeSight.Services;
 
 public class OrderChoresService
 {
-    public List<Guid> OrderChores(List<Chore> chores, List<Domain> domains)
+    public List<Guid> OrderChores(IDictionary<Guid, Chore> choresDic, List<Domain> domains)
     {
-        Dictionary<Guid, Chore> choresDic = chores.ToDictionary(
-            c => (Guid)c.Id,
-            c => c);
         Dictionary<Guid, Domain> domainsDic = domains.ToDictionary(
              d => (Guid)d.Id,
              d => d);
-        List<ChoreDomain> choreDomains = [.. chores.SelectMany(c => c.ChoreDomains)];
+        List<ChoreDomain> choreDomains = [.. choresDic.Values.SelectMany(c => c.ChoreDomains)];
 
         List<ChorePriorityForDomain> prioritiesForDomains = [ .. choreDomains.Select(cd =>
         {
-            Chore chore = choresDic.GetValueOrDefault(cd.ChoreId);
+            if (!choresDic.TryGetValue(cd.ChoreId,out Chore? chore))
+            {
+                throw new ArgumentException("We have choreDomains but we can't find the chore associated with");
+            }
+
             Domain domain = domainsDic.GetValueOrDefault(cd.DomainId);
             int doneScore = chore.GetScoreForDomain(domain);
             int priorityScore = GetPriorityScore(chore,domain,doneScore);

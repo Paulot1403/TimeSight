@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Supabase.Gotrue;
 using TimeSight.Extensions;
 using TimeSight.Models;
 using TimeSight.SupabaseClient.Models;
@@ -11,6 +12,7 @@ namespace TimeSight.repositories;
 
 public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) : IChoreRepository
 {
+    private static int _taskIncrement = 1;
     public async Task<List<Chore>> GetChoresAsync()
     {
         ICollection<SupabaseChore> supabaseChores = await supabaseChoreService.GetChoresAsync();
@@ -21,9 +23,14 @@ public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) 
 
     }
 
-    public async Task<Chore> CreateChoreAsync(Chore chore)
+    public async Task<Chore> CreateChoreAsync(Guid userId, String name)
     {
-        SupabaseChore supabaseChore = chore.ToSupabaseChore();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = "Task " + _taskIncrement++;
+        }
+
+        SupabaseChore supabaseChore = new() { UserId = userId, Name = name };
 
         SupabaseChore newSupabaseChore = await supabaseChoreService.CreateChoreAsync(supabaseChore);
 

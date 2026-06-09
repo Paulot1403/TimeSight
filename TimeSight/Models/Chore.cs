@@ -11,11 +11,7 @@ public class Chore
     public const int MAX_DURATION = 4;
     public required Guid UserId { get; set; }
     public required string Name { get; set; }
-
-    /// <summary>
-    /// Id from database
-    /// </summary>
-    public Guid? Id { get; set; }
+    public required Guid Id { get; set; }
     public bool IsDone { get; set; } = false;
 
     /// <summary>
@@ -30,25 +26,30 @@ public class Chore
 
     public DateTime? DoneAt { get; set; }
 
-    // public DateTime? ScheduledStartDate { get; set; }
-    // public DateTime? ScheduledEndDate { get; set; }
+    public Chore? ParentChore
+    {
+        get; set
+        {
+            ParentChoreId = value?.Id;
+            field = value;
+        }
+    }
 
+    public ICollection<Chore> Children { get; set; } = [];
 
     public bool IsSubtask => ParentChoreId != null;
 
-    public Chore? GetRootOfThis(ICollection<Chore> chores)
+    public Chore? GetRootOfThis()
     {
         if (ParentChoreId == null)
         { return this; }
 
-        Chore parentChore = chores.FirstOrDefault(c => c.Id == ParentChoreId);
-
-        if (parentChore == null)
+        if (ParentChore == null)
         {
             throw new ArgumentException("chores ne contient pas le parent");
         }
 
-        return parentChore.GetRootOfThis(chores);
+        return ParentChore.GetRootOfThis();
     }
 
     /// <summary>
