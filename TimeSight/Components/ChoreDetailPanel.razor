@@ -59,8 +59,10 @@
             <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
                    @bind="editDuration" @bind:event="oninput" />
             <div class="panel-range-labels">
-                <span>Quick</span>
-                <span>Long</span>
+                <span>5 min</span>
+                <span>15 min</span>
+                <span>45 min</span>
+                <span>2 h</span>
             </div>
         </div>
 
@@ -115,17 +117,17 @@
             </div>
         }
 
-        @if (!isSubtask)
+        @if (!Chore.IsSubtask)
         {
             <div class="mb-4">
-                <label class="form-label">Domains</label>
+                <label class="form-label">Importance for Domains</label>
                 @foreach (var domain in LocalDomainsSelected)
                 {
                     <div class="domain-intensity-row">
                         <div class="d-flex align-items-center gap-2 flex-shrink-0">
                             <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                     stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18" />
                                     <line x1="6" y1="6" x2="18" y2="18" />
                                 </svg>
@@ -138,6 +140,7 @@
                             <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)"
                                    @oninput="e => SetIntensity(domain, e)" />
                             <span class="panel-metric-val">@GetIntensity(domain)</span>
+
                         </div>
                     </div>
                 }
@@ -157,24 +160,7 @@
                 }
             </div>
         }
-        else if (DomainsSelected.Any())
-        {
-            <div class="mb-4">
-                <label class="form-label">Domain intensity <span class="text-muted ms-1" style="font-size:0.75rem">— inherited from parent</span></label>
-                @foreach (var domain in DomainsSelected)
-                {
-                    <div class="domain-intensity-row">
-                        <span class="domain-intensity-name" style="--tag-color:@(domain.Color ?? "#6366f1")">
-                            @domain.Name
-                        </span>
-                        <div class="domain-intensity-control">
-                            <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)" disabled />
-                            <span class="panel-metric-val">@GetIntensity(domain)</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
+
     </div>
 
     <div class="chore-panel-footer">
@@ -205,7 +191,6 @@
     private int editDuration;
     private Dictionary<Guid, int> intensities = [];
 
-    private bool isSubtask => Chore?.ParentChoreId != null;
 
     private Chore? parentChore =>
         Chore?.ParentChoreId != null
@@ -322,7 +307,7 @@
         if (choreChanged)
             await choreService.UpdateChoreAsync(Chore);
 
-        if (!isSubtask)
+        if (!Chore.IsSubtask)
         {
             foreach (var cd in Chore!.ChoreDomains)
             {

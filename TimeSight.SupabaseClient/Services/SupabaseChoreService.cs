@@ -9,7 +9,7 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseChoreService(Client supabase)
 {
-    public async Task<ICollection<SupabaseChore>> GetChoresAsync()
+    public async Task<ICollection<SupabaseChore>> GetChoresAsync(Guid workspaceId)
     {
         var response = await supabase.From<SupabaseChore>()
             .Select(@"
@@ -18,6 +18,7 @@ public class SupabaseChoreService(Client supabase)
                     *
                 )
             ")
+            .Where(c => c.WorkspaceId == workspaceId)
             .Get();
         return response.Models;
     }

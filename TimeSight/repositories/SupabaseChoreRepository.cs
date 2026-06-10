@@ -13,24 +13,20 @@ namespace TimeSight.repositories;
 public class SupabaseChoreRepository(SupabaseChoreService supabaseChoreService) : IChoreRepository
 {
     private static int _taskIncrement = 1;
-    public async Task<List<Chore>> GetChoresAsync()
+    public async Task<List<Chore>> GetChoresAsync(Guid workspaceId)
     {
-        ICollection<SupabaseChore> supabaseChores = await supabaseChoreService.GetChoresAsync();
-        return [.. supabaseChores.Select(sc =>
-        {
-            return sc.ToChore();
-        })];
-
+        ICollection<SupabaseChore> supabaseChores = await supabaseChoreService.GetChoresAsync(workspaceId);
+        return [.. supabaseChores.Select(sc => sc.ToChore())];
     }
 
-    public async Task<Chore> CreateChoreAsync(Guid userId, String name)
+    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "")
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             name = "Task " + _taskIncrement++;
         }
 
-        SupabaseChore supabaseChore = new() { UserId = userId, Name = name };
+        SupabaseChore supabaseChore = new() { UserId = userId, WorkspaceId = workspaceId, Name = name };
 
         SupabaseChore newSupabaseChore = await supabaseChoreService.CreateChoreAsync(supabaseChore);
 

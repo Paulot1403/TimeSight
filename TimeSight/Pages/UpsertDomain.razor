@@ -1,4 +1,5 @@
 @using TimeSight.repositories
+@using TimeSight.Services
 
 @page "/domains/create"
 @page "/domains/edit/{id:guid}"
@@ -7,6 +8,7 @@
 
 @inject NavigationManager navigationManager
 @inject IDomainRepository domainRepository
+@inject WorkspaceState workspaceState
 
 <PageTitle>@(Id != null ? "Edit Domain" : "New Domain") — TimeSight</PageTitle>
 
@@ -31,6 +33,17 @@
                     <label class="form-label" for="domain-description">Description</label>
                     <InputTextArea class="form-control" id="domain-description" rows="8" placeholder="Markdown supported…"
                                    @bind-Value="domain.Description" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="domain-importance">
+                        Importance — <strong>@domain.Importance</strong>/5
+                    </label>
+                    <input type="range" id="domain-importance" class="form-range" min="1" max="5" step="1"
+                           value="@domain.Importance" @oninput="OnImportanceChanged" />
+                    <div class="d-flex justify-content-between" style="font-size:.75rem;color:var(--bs-secondary-color)">
+                        <span>Low</span><span>Medium</span><span>Critical</span>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -66,6 +79,12 @@
 
     private Domain? domain;
 
+    private void OnImportanceChanged(ChangeEventArgs e)
+    {
+        if (domain != null && int.TryParse(e.Value?.ToString(), out var v))
+            domain.Importance = v;
+    }
+
     public async Task Submit()
     {
         ArgumentNullException.ThrowIfNull(domain);
@@ -92,7 +111,9 @@
         }
         else
         {
-            domain = new Domain() { UserId = (Guid)UserId, Name = "" };
+            var wsId = workspaceState.CurrentWorkspace?.Id
+                ?? throw new InvalidOperationException("No workspace selected");
+            domain = new Domain() { UserId = (Guid)UserId, WorkspaceId = wsId, Name = "" };
         }
         await base.OnParametersSetAsync();
     }

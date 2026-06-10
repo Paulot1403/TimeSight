@@ -9,12 +9,11 @@ namespace TimeSight.SupabaseClient.Services;
 
 public class SupabaseDomainService(Client supabase)
 {
-    public async Task<ICollection<SupabaseDomain>> GetDomainsAsync()
+    public async Task<ICollection<SupabaseDomain>> GetDomainsAsync(Guid workspaceId)
     {
         var response = await supabase.From<SupabaseDomain>()
-            .Select(@"
-                *
-            ")
+            .Select("*")
+            .Where(d => d.WorkspaceId == workspaceId)
             .Get();
         return response.Models;
     }

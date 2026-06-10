@@ -15,9 +15,11 @@ public static class SupabaseDomainExtensions
         {
             Id = supabaseDomain.Id,
             UserId = supabaseDomain.UserId,
+            WorkspaceId = supabaseDomain.WorkspaceId,
             Name = supabaseDomain.Name,
             Color = supabaseDomain.Color,
-            Description = supabaseDomain.Description
+            Description = supabaseDomain.Description,
+            Importance = supabaseDomain.Importance
         };
     }
 }

@@ -1,38 +1,98 @@
+@using TimeSight.repositories
+@using TimeSight.Services
+@inject IWorkspaceRepository workspaceRepository
+@inject WorkspaceState workspaceState
+@inject NavigationManager navigationManager
+
 <div class="nav-header d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
     <div class="d-flex align-items-center gap-2">
         <div class="nav-brand-mark">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
-                <circle cx="12" cy="12" r="9"/>
-                <polyline points="12 7 12 12 15.5 15.5"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+                 stroke-linecap="round">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15.5 15.5" />
             </svg>
         </div>
         <span class="nav-brand-name">TimeSight</span>
     </div>
     <button title="Navigation menu" class="nav-toggle btn btn-sm" @onclick="ToggleNavMenu">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
     </button>
 </div>
 
 <div class="@NavMenuCssClass nav-body" @onclick="ToggleNavMenu">
+    <div class="px-2 py-3 border-bottom">
+        <p class="nav-section-label text-uppercase fw-semibold small ps-2 mb-2">Workspace</p>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center gap-2" type="button"
+                    @onclick:stopPropagation="true" @onclick="ToggleDropdown">
+                @if (workspaceState.CurrentWorkspace != null)
+                {
+                    <span
+                    style="width:8px;height:8px;border-radius:50%;background:@(workspaceState.CurrentWorkspace.Color ?? "#6366f1");flex-shrink:0;display:inline-block;"></span>
+                    <span class="flex-grow-1 text-start text-truncate">@workspaceState.CurrentWorkspace.Name</span>
+                }
+                else
+                {
+                    <span class="flex-grow-1 text-start text-muted">Select workspace…</span>
+                }
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round">
+                    <polyline points="6 9 12 15 18 9" />
+                </svg>
+            </button>
+            @if (dropdownOpen)
+            {
+                <div class="dropdown-menu show w-100 mt-1" @onclick:stopPropagation="true">
+                    @foreach (var ws in workspaces)
+                    {
+                        var isActive = workspaceState.CurrentWorkspace?.Id == ws.Id;
+                        <button class="dropdown-item d-flex align-items-center gap-2 @(isActive ? "active" : "")" type="button"
+                                @onclick="() => SelectWorkspace(ws)">
+                            <span
+                            style="width:8px;height:8px;border-radius:50%;background:@(ws.Color ?? "#6366f1");flex-shrink:0;display:inline-block;"></span>
+                            @ws.Name
+                        </button>
+                    }
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item d-flex align-items-center gap-2 text-muted" type="button"
+                            @onclick='() => navigationManager.NavigateTo(navigationManager.BaseUri + "workspaces")'>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                            <line x1="8" y1="21" x2="16" y2="21" />
+                            <line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                        Manage workspaces
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
     <nav class="nav flex-column px-2 py-3">
         <p class="nav-section-label text-uppercase fw-semibold small ps-2 mb-2">Navigation</p>
-        <NavLink class="nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2" href="" Match="NavLinkMatch.All">
-            <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        <NavLink class="nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2" href=""
+                 Match="NavLinkMatch.All">
+            <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>
             Tasks
         </NavLink>
         <NavLink class="nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2" href="domains">
-            <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
             Domains
         </NavLink>
@@ -41,8 +101,29 @@
 
 @code {
     private bool collapseNavMenu = true;
+    private bool dropdownOpen = false;
+    private List<Workspace> workspaces = [];
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        workspaceState.OnChanged += OnWorkspaceChanged;
+        workspaces = await workspaceRepository.GetWorkspacesAsync();
+        if (workspaceState.CurrentWorkspace == null && workspaces.Count > 0)
+            workspaceState.SetWorkspace(workspaces[0]);
+        await base.OnInitializedAsync();
+    }
+
+    private void OnWorkspaceChanged() => InvokeAsync(StateHasChanged);
+
+    private void ToggleDropdown() => dropdownOpen = !dropdownOpen;
+
+    private void SelectWorkspace(Workspace ws)
+    {
+        workspaceState.SetWorkspace(ws);
+        dropdownOpen = false;
+    }
 
     private void ToggleNavMenu()
     {

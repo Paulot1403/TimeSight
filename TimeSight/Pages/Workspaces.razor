@@ -1,0 +1,88 @@
+@using TimeSight.repositories
+@using TimeSight.Services
+
+@page "/workspaces"
+@attribute [Authorize]
+
+@inject NavigationManager navigationManager
+@inject IWorkspaceRepository workspaceRepository
+@inject WorkspaceState workspaceState
+
+<PageTitle>Workspaces — TimeSight</PageTitle>
+
+<div class="domains-wrap">
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="page-title">Workspaces</h1>
+            <p class="text-muted small mb-0">Top-level contexts for your tasks and domains</p>
+        </div>
+        <div class="flex-shrink-0">
+            <button type="button" class="btn btn-primary btn-sm" @onclick='() => navigationManager.NavigateToRelative("workspaces/create")'>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New workspace
+            </button>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2">
+        @foreach (var ws in workspaces)
+        {
+            var isActive = workspaceState.CurrentWorkspace?.Id == ws.Id;
+            <div class="card @(isActive ? "border-primary" : "")">
+                <div class="card-body py-3 d-flex align-items-center gap-3">
+                    <span class="domain-color-dot flex-shrink-0" style="background:@(ws.Color ?? "#6366f1")"></span>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">@ws.Name</div>
+                        @if (!string.IsNullOrWhiteSpace(ws.Description))
+                        {
+                            <div class="text-muted small">@ws.Description</div>
+                        }
+                    </div>
+                    @if (isActive)
+                    {
+                        <span class="badge bg-primary">Active</span>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                @onclick="() => workspaceState.SetWorkspace(ws)">
+                            Switch
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            @onclick='() => navigationManager.NavigateToRelative($"workspaces/edit/{ws.Id}")'>
+                        Edit
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                            @onclick="() => Delete(ws)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter(Name = "UserId")]
+    public Guid? UserId { get; set; }
+
+    private List<Workspace> workspaces = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        workspaces = await workspaceRepository.GetWorkspacesAsync();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Delete(Workspace ws)
+    {
+        if (workspaceState.CurrentWorkspace?.Id == ws.Id)
+            workspaceState.SetWorkspace(workspaces.FirstOrDefault(w => w.Id != ws.Id)!);
+        await workspaceRepository.DeleteWorkspaceAsync(ws.Id!.Value);
+        workspaces.Remove(ws);
+    }
+}

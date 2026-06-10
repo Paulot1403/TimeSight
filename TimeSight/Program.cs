@@ -4,6 +4,7 @@ using TimeSight;
 using TimeSight.repositories;
 using TimeSight.Services;
 using TimeSight.SupabaseClient;
+using TimeSight.SupabaseClient.Services;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -16,9 +17,11 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IChoreRepository, SupabaseChoreRepository>();
 builder.Services.AddSingleton<IDomainRepository, SupabaseDomainRepository>();
 builder.Services.AddSingleton<IChoreDomainRepository, SupabaseChoreDomainRepository>();
+builder.Services.AddSingleton<IWorkspaceRepository, SupabaseWorkspaceRepository>();
 builder.Services.AddSingleton<OrderChoresService>();
 builder.Services.AddSingleton<ChoreDomainService>();
 builder.Services.AddSingleton<ChoreService>();
+builder.Services.AddSingleton<WorkspaceState>();
 
 builder.Services.AddSupabase().Configure(options =>
 {

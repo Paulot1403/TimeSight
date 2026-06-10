@@ -11,9 +11,9 @@ public class ChoreService(
     IChoreRepository choreRepository,
     IChoreDomainRepository choreDomainRepository)
 {
-    public async Task<IDictionary<Guid, Chore>> GetChoresAsync()
+    public async Task<IDictionary<Guid, Chore>> GetChoresAsync(Guid workspaceId)
     {
-        List<Chore> chores = await choreRepository.GetChoresAsync();
+        List<Chore> chores = await choreRepository.GetChoresAsync(workspaceId);
 
         Dictionary<Guid, Chore> choresDic = chores.ToDictionary(
             c => c.Id,
@@ -56,8 +56,8 @@ public class ChoreService(
         await choreRepository.UpdateChoreAsync(chore);
     }
 
-    public async Task<Chore> CreateChoreAsync(Guid userId) =>
-        await choreRepository.CreateChoreAsync(userId);
+    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId) =>
+        await choreRepository.CreateChoreAsync(userId, workspaceId);
     public async Task<Chore> UpdateChoreAsync(Chore chore) =>
         await choreRepository.UpdateChoreAsync(chore);
     public async Task DeleteChoreAsync(Chore chore)

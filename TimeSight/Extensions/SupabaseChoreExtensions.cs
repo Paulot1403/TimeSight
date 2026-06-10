@@ -15,6 +15,7 @@ public static class SupabaseChoreExtensions
         {
             Id = supabaseChore.Id!.Value,
             UserId = supabaseChore.UserId,
+            WorkspaceId = supabaseChore.WorkspaceId,
             Name = supabaseChore.Name,
             IsDone = supabaseChore.IsDone,
             Duration = supabaseChore.Duration ?? 2,

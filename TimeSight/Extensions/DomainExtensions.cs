@@ -15,9 +15,11 @@ public static class DomainExtensions
         {
             Id = domain.Id,
             UserId = domain.UserId,
+            WorkspaceId = domain.WorkspaceId,
             Name = domain.Name,
             Color = domain.Color,
-            Description = domain.Description
+            Description = domain.Description,
+            Importance = domain.Importance
         };
     }
 }

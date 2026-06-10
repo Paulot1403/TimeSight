@@ -10,6 +10,9 @@ public class SupabaseChore : BaseModel
     [Column("user_id")]
     public Guid UserId { get; set; }
 
+    [Column("workspace_id")]
+    public Guid WorkspaceId { get; set; }
+
     [Column("name")]
     public string? Name { get; set; }
 

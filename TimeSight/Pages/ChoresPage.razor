@@ -5,11 +5,20 @@
 @page "/"
 
 @attribute [Authorize]
+@implements IDisposable
 @inject IDomainRepository domainRepository;
 @inject OrderChoresService orderChoresService;
 @inject ChoreService choreService;
+@inject WorkspaceState workspaceState;
 
 <PageTitle>Tasks — TimeSight</PageTitle>
+
+@if (workspaceState.CurrentWorkspace == null)
+{
+    <div class="text-muted mt-4">Select a workspace from the sidebar to view tasks.</div>
+}
+else
+{
 
 <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
     <div>
@@ -85,6 +94,8 @@
         }
     </ul>
 
+}
+
 @code {
     [CascadingParameter(Name = "UserId")]
     public Guid? UserId { get; set; }
@@ -103,13 +114,39 @@
     private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
 
     private List<(Chore chore, int depth)> orderedChores = [];
+
     protected override async Task OnParametersSetAsync()
     {
-        choresDic = await choreService.GetChoresAsync();
-        domains = await domainRepository.GetDomainsAsync();
-        RebuildOrderedChores();
+        workspaceState.OnChanged += OnWorkspaceChanged;
+        await LoadData();
         await base.OnParametersSetAsync();
     }
+
+    private async void OnWorkspaceChanged()
+    {
+        await LoadData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadData()
+    {
+        if (workspaceState.CurrentWorkspace?.Id is Guid wsId)
+        {
+            choresDic = await choreService.GetChoresAsync(wsId);
+            domains = await domainRepository.GetDomainsAsync(wsId);
+        }
+        else
+        {
+            choresDic = new Dictionary<Guid, Chore>();
+            domains = [];
+        }
+        _newlyAddedChoreId = null;
+        _sortedChoreIds = null;
+        selectedDomainIds.Clear();
+        RebuildOrderedChores();
+    }
+
+    public void Dispose() => workspaceState.OnChanged -= OnWorkspaceChanged;
 
     private void RebuildOrderedChores()
     {
@@ -145,7 +182,9 @@
 
     private async Task AddChore()
     {
-        Chore chore = await choreService.CreateChoreAsync(UserId!.Value);
+        var wsId = workspaceState.CurrentWorkspace?.Id
+            ?? throw new InvalidOperationException("No workspace selected");
+        Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
         _newlyAddedChoreId = chore.Id;
         choresDic.Add(chore.Id, chore);
         RebuildOrderedChores();

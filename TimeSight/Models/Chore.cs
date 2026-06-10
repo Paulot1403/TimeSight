@@ -10,6 +10,7 @@ public class Chore
 {
     public const int MAX_DURATION = 4;
     public required Guid UserId { get; set; }
+    public required Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
     public required Guid Id { get; set; }
     public bool IsDone { get; set; } = false;
@@ -63,6 +64,6 @@ public class Chore
         if (cd == null)
             return 0;
 
-        return cd.LinkIntensity;
+        return domain.Importance * cd.LinkIntensity;
     }
 }

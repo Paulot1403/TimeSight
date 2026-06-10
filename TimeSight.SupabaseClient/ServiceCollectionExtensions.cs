@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SupabaseChoreService>();
         services.AddSingleton<SupabaseDomainService>();
         services.AddSingleton<SupabaseChoreDomainService>();
+        services.AddSingleton<SupabaseWorkspaceService>();
 
         services.AddScoped<AuthenticationStateProvider, SupabaseAuthStateProvider>();
 

@@ -1,14 +1,23 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using TimeSight.repositories
+@using TimeSight.Services
 @using System.Security.Claims
 @page "/domains"
 
 @attribute [Authorize]
+@implements IDisposable
 @inject NavigationManager navigationManager
 @inject IDomainRepository domainRepository
+@inject WorkspaceState workspaceState
 
 <PageTitle>Domains — TimeSight</PageTitle>
 
+@if (workspaceState.CurrentWorkspace == null)
+{
+    <div class="text-muted mt-4">Select a workspace from the sidebar to view domains.</div>
+}
+else
+{
 <div class="domains-wrap">
     <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
         <div>
@@ -85,6 +94,7 @@
         }
     }
 </div>
+}
 
 @code {
     [CascadingParameter]
@@ -95,9 +105,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        domains = await domainRepository.GetDomainsAsync();
+        workspaceState.OnChanged += OnWorkspaceChanged;
+        await LoadDomains();
         await base.OnInitializedAsync();
     }
+
+    private async void OnWorkspaceChanged()
+    {
+        await LoadDomains();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadDomains()
+    {
+        if (workspaceState.CurrentWorkspace?.Id is Guid wsId)
+            domains = await domainRepository.GetDomainsAsync(wsId);
+        else
+            domains = [];
+        expandedId = null;
+    }
+
+    public void Dispose() => workspaceState.OnChanged -= OnWorkspaceChanged;
 
     private void ToggleDescription(Guid id)
     {

@@ -1,0 +1,109 @@
+@using TimeSight.repositories
+@using TimeSight.Services
+
+@page "/workspaces/create"
+@page "/workspaces/edit/{id:guid}"
+
+@attribute [Authorize]
+
+@inject NavigationManager navigationManager
+@inject IWorkspaceRepository workspaceRepository
+@inject WorkspaceState workspaceState
+
+<PageTitle>@(Id != null ? "Edit Workspace" : "New Workspace") — TimeSight</PageTitle>
+
+@if (workspace != null)
+{
+    <div class="card" style="max-width:460px">
+        <div class="card-body p-4">
+            <h2 class="card-title border-bottom pb-3 mb-4">@(Id != null ? "Edit workspace" : "New workspace")</h2>
+
+            <EditForm Model="workspace" OnValidSubmit="Submit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label class="form-label" for="ws-name">Name</label>
+                    <InputText class="form-control" id="ws-name" placeholder="e.g. Perso, Pro, Side project…"
+                               @bind-Value="workspace.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="ws-description">Description</label>
+                    <InputTextArea class="form-control" id="ws-description" rows="4"
+                                   @bind-Value="workspace.Description" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="ws-color">Color</label>
+                    <div class="domain-color-picker-wrap">
+                        <input type="color" id="ws-color" class="domain-color-input"
+                               value="@(workspace.Color ?? "#6366f1")"
+                               @oninput="e => workspace.Color = e.Value?.ToString()" />
+                        <span class="domain-tag" style="--tag-color:@(workspace.Color ?? "#6366f1")">
+                            @workspace.Name
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary">
+                        @(Id != null ? "Save changes" : "Create workspace")
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary"
+                            @onclick='() => navigationManager.NavigateToRelative("workspaces")'>
+                        Cancel
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter(Name = "UserId")]
+    public Guid? UserId { get; set; }
+
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private Workspace? workspace;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserId == null)
+            throw new ArgumentException("UserId est null");
+
+        if (Id != null)
+        {
+            var all = await workspaceRepository.GetWorkspacesAsync();
+            workspace = all.FirstOrDefault(w => w.Id == Id)
+                ?? throw new ArgumentException("Workspace introuvable");
+        }
+        else
+        {
+            workspace = new Workspace { UserId = UserId.Value, Name = "" };
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task Submit()
+    {
+        ArgumentNullException.ThrowIfNull(workspace);
+
+        if (Id != null)
+        {
+            workspace = await workspaceRepository.UpdateWorkspaceAsync(workspace);
+            if (workspaceState.CurrentWorkspace?.Id == workspace.Id)
+                workspaceState.SetWorkspace(workspace);
+        }
+        else
+        {
+            workspace = await workspaceRepository.CreateWorkspaceAsync(workspace);
+            workspaceState.SetWorkspace(workspace);
+        }
+
+        navigationManager.NavigateToRelative("workspaces");
+    }
+}

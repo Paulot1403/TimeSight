@@ -15,6 +15,7 @@ public static class ChoreExtensions
         {
             Id = chore.Id,
             UserId = chore.UserId,
+            WorkspaceId = chore.WorkspaceId,
             Name = chore.Name,
             IsDone = chore.IsDone,
             Duration = chore.Duration,
