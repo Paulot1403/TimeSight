@@ -16,9 +16,9 @@ public class Domain
     public int Importance { get; set; } = 3;
     public Guid? Id { get; set; }
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
-    public int DoneScore { get; set; } = 1;
+    public double DoneScore { get; set; } = 1;
 
-    public static float ComputePriority(int domainScore, int domainImportance)
+    public static float ComputePriority(double domainScore, int domainImportance)
     {
         return domainImportance / (float)domainScore;
     }

@@ -53,21 +53,33 @@ public class ChoreService(
         bool isDone,
         bool changeDomainsScore = true)
     {
-        chore.IsDone = isDone;
-        await UpdateChoreAsync(chore);
-
-        if (!changeDomainsScore) return;
-
-        var root = chore.GetRootOfThis();
-        var domains = allDomains
-            .Where(d => root.ChoreDomains.Any(cd => cd.DomainId == d.Id))
-            .ToList();
-        foreach (var domain in domains)
+        if (changeDomainsScore)
         {
-            int score = chore.GetScoreForDomain(domain);
-            domain.DoneScore += isDone ? score : -score;
+            var root = chore.GetRootOfThis();
+            int descCount = root.CountAllDescendants();
+            int oldDoneCount = root.CountAllDoneDescendants();
+            bool oldRootIsDone = root.IsDone;
+
+            chore.IsDone = isDone;
+            await UpdateChoreAsync(chore);
+
+            int newDoneCount = root.CountAllDoneDescendants();
+            bool newRootIsDone = root.IsDone;
+
+            var linked = GetLinkedDomains(root, allDomains);
+            foreach (var domain in linked)
+            {
+                int raw = GetRawScore(root, domain);
+                domain.DoneScore += Contribution(raw, descCount, newDoneCount, newRootIsDone)
+                                  - Contribution(raw, descCount, oldDoneCount, oldRootIsDone);
+            }
+            await Task.WhenAll(linked.Select(domainRepository.UpdateDomainAsync));
         }
-        await Task.WhenAll(domains.Select(domainRepository.UpdateDomainAsync));
+        else
+        {
+            chore.IsDone = isDone;
+            await UpdateChoreAsync(chore);
+        }
     }
     public async Task SetParent(Chore chore, Chore parent, ICollection<Domain> allDomains)
     {
@@ -161,8 +173,8 @@ public class ChoreService(
     /// Score total attribué au domaine pour une racine donnée.
     /// Si la racine n'a pas de descendants, on retourne le score brut si elle est faite.
     /// </summary>
-    private static int Contribution(int rawScore, int descCount, int doneCount, bool rootIsDone) =>
-        descCount > 0 ? rawScore * doneCount / descCount : (rootIsDone ? rawScore : 0);
+    private static double Contribution(int rawScore, int descCount, int doneCount, bool rootIsDone) =>
+        descCount > 0 ? (double)rawScore * doneCount / descCount : (rootIsDone ? rawScore : 0);
 
 
     public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "") =>

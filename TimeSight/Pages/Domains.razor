@@ -47,6 +47,7 @@ else
                 </TemplateColumn>
                 <PropertyColumn Property="d => d.Importance" Title="Importance" />
                 <PropertyColumn Property="d => Domain.ComputePriority(d.DoneScore, d.Importance)" Title="Priority" />
+                <PropertyColumn Property="d => d.DoneScore" Title="Done score" />
 
                 <TemplateColumn Title="" Class="domain-col-icon">
                     @if (!string.IsNullOrWhiteSpace(context.Description))

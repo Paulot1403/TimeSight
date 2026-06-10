@@ -14,7 +14,7 @@ public class DomainPriorityComputation()
     /// <summary>
     /// Score anticipé après chaque réalisation de tâches
     /// </summary>
-    public int CurrentScore { get; set; }
+    public double CurrentScore { get; set; }
 
     public float Priority => Domain.ComputePriority(CurrentScore, DomainImportance);
 

@@ -20,7 +20,7 @@ public static class DomainExtensions
             Color = domain.Color,
             Description = domain.Description,
             Importance = domain.Importance,
-            DoneScore = domain.DoneScore.ToString()
+            DoneScore = domain.DoneScore.ToString(System.Globalization.CultureInfo.InvariantCulture)
         };
     }
 }
