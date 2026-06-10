@@ -187,7 +187,8 @@ else
     private void AppendWithChildren(Chore chore, int depth, List<(Chore, int)> result)
     {
         result.Add((chore, depth));
-        foreach (var child in chore.Children)
+        var visibleChildren = showDone ? chore.Children : chore.Children.Where(c => !c.IsDone);
+        foreach (var child in visibleChildren)
             AppendWithChildren(child, depth + 1, result);
     }
 
