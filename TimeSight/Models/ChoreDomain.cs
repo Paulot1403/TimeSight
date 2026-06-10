@@ -3,6 +3,8 @@ namespace TimeSight.Models;
 public class ChoreDomain
 {
     public const int MAXIMUM_LINK_INTENSITY = 6;
+    public const int DEFAULT_LINK_INTENSITY = 3;
+
     public ChoreDomain()
     {
 
@@ -20,7 +22,7 @@ public class ChoreDomain
 
     public Guid ChoreId { get; set; }
     public Guid DomainId { get; set; }
-    public int LinkIntensity { get; set; } = 3;
+    public int LinkIntensity { get; set; } = DEFAULT_LINK_INTENSITY;
 
     public bool IsMadeOf(Chore chore, Domain domain)
     {

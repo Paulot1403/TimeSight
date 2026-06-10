@@ -66,18 +66,7 @@
             </div>
         </div>
 
-        <div class="mb-4">
-            <label class="form-label">Recurrence</label>
-            <select class="form-control" @bind="editRecurrenceStr">
-                <option value="0">No recurrence</option>
-                <option value="1">Every day</option>
-                <option value="3">Every 3 days</option>
-                <option value="7">Every week</option>
-                <option value="14">Every 2 weeks</option>
-                <option value="30">Every month</option>
-                <option value="60">Every 2 months</option>
-            </select>
-        </div>
+ 
 
         <div class="mb-4">
             <label class="form-label">Parent task</label>
@@ -179,6 +168,18 @@
                 }
             </div>
         }
+        <div class="mb-4">
+            <label class="form-label">Recurrence</label>
+            <select class="form-control" @bind="editRecurrenceStr">
+                <option value="0">No recurrence</option>
+                <option value="1">Every day</option>
+                <option value="3">Every 3 days</option>
+                <option value="7">Every week</option>
+                <option value="14">Every 2 weeks</option>
+                <option value="30">Every month</option>
+                <option value="60">Every 2 months</option>
+            </select>
+        </div>
 
     </div>
 
@@ -274,7 +275,7 @@
     }
 
     private int GetIntensity(Domain domain) =>
-        intensities.TryGetValue(domain.Id!.Value, out var v) ? v : 1;
+        intensities.TryGetValue(domain.Id!.Value, out var v) ? v : ChoreDomain.DEFAULT_LINK_INTENSITY;
 
     private void SetIntensity(Domain domain, ChangeEventArgs e) =>
         intensities[domain.Id!.Value] = int.Parse(e.Value!.ToString()!);
@@ -282,7 +283,7 @@
     private async Task AddDomain(Domain domain)
     {
         await choreDomainService.AddLink(Chore!, domain);
-        intensities[domain.Id!.Value] = 1;
+        intensities[domain.Id!.Value] = ChoreDomain.DEFAULT_LINK_INTENSITY;
     }
 
     private async Task RemoveDomain(Domain domain)
