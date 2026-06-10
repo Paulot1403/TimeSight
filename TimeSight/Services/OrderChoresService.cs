@@ -76,7 +76,8 @@ public class OrderChoresService
 
     private static int GetPriorityScore(Chore chore, Domain domain, int doneScore)
     {
-        return doneScore + (Chore.MAX_DURATION - chore.Duration);
+        int durationScore = chore.Duration.HasValue ? Chore.MAX_DURATION - chore.Duration.Value : 0;
+        return doneScore + durationScore;
     }
 
 }

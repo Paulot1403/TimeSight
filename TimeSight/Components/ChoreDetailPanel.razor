@@ -27,15 +27,26 @@
 
 
         <div class="mb-4">
-            <label class="form-label">Duration -- <span class="panel-metric-val">@editDuration</span></label>
-            <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
-                   @bind="editDuration" @bind:event="oninput" />
-            <div class="panel-range-labels">
-                <span>5 min</span>
-                <span>15 min</span>
-                <span>45 min</span>
-                <span>2 h</span>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Duration</label>
+                <span class="panel-metric-val">@TimeSight.Models.Chore.DurationLabel(editDuration)</span>
+                <div class="form-check form-switch ms-auto mb-0">
+                    <input class="form-check-input" type="checkbox" id="noDurationCheck"
+                           checked="@(editDuration == null)"
+                           @onchange="e => editDuration = (bool)e.Value! ? null : 4" />
+                    <label class="form-check-label small" for="noDurationCheck">No estimate</label>
+                </div>
             </div>
+            @if (editDuration.HasValue)
+            {
+                <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
+                       value="@editDuration"
+                       @oninput="e => editDuration = int.Parse(e.Value!.ToString()!)" />
+                <div class="panel-range-labels">
+                    <span>5 min</span>
+                    <span>1 sem.</span>
+                </div>
+            }
         </div>
         @if (!Chore.IsSubtask)
         {
@@ -220,7 +231,7 @@
     private string editName = string.Empty;
     private string? editDescription;
     private bool descriptionPreview = false;
-    private int editDuration;
+    private int? editDuration;
     private int? editRecurrenceIntervalDays;
     private string editRecurrenceStr
     {
@@ -268,7 +279,7 @@
     {
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
-        editDuration = Chore?.Duration ?? 1;
+        editDuration = Chore?.Duration;
         editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
 
         intensities = Chore?.ChoreDomains

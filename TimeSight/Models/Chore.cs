@@ -9,6 +9,16 @@ namespace TimeSight.Models;
 public class Chore
 {
     public const int MAX_DURATION = 4;
+
+    public static string DurationLabel(int? duration) => duration switch
+    {
+        null => "—",
+        1 => "5 min",
+        2 => "15 min",
+        3 => "45 min",
+        4 => "2 h",
+        _ => $"{duration}"
+    };
     public required Guid UserId { get; set; }
     public required Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
@@ -24,9 +34,9 @@ public class Chore
     } = false;
 
     /// <summary>
-    /// De 1 à <see cref="Chore.MAX_DURATION"/> ?
+    /// De 1 à <see cref="Chore.MAX_DURATION"/>, ou null si pas d'estimation.
     /// </summary>
-    public int Duration { get; set; } = 2;
+    public int? Duration { get; set; } = null;
 
     public string? Description { get; set; }
     public Guid? ParentChoreId { get; set; }
