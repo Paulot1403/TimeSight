@@ -137,10 +137,15 @@
                             </span>
                         </div>
                         <div class="domain-intensity-control">
-                            <input type="range" class="panel-range" min="1" max="5" value="@GetIntensity(domain)"
-                                   @oninput="e => SetIntensity(domain, e)" />
-                            <span class="panel-metric-val">@GetIntensity(domain)</span>
-
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" class="panel-range flex-grow-1" min="1" max="4"
+                                       value="@GetIntensity(domain)" @oninput="e => SetIntensity(domain, e)" />
+                                <span class="panel-metric-val">@GetIntensity(domain)</span>
+                            </div>
+                            <div class="panel-range-labels">
+                                <span>Good to have</span>
+                                <span>Essential</span>
+                            </div>
                         </div>
                     </div>
                 }
