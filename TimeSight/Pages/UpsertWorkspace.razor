@@ -47,10 +47,14 @@
                 </div>
 
                 <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                    <button type="submit" class="btn btn-primary">
-                        @(Id != null ? "Save changes" : "Create workspace")
+                    <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        }
+                        @(_isSaving ? "Saving…" : (Id != null ? "Save changes" : "Create workspace"))
                     </button>
-                    <button type="button" class="btn btn-outline-secondary"
+                    <button type="button" class="btn btn-outline-secondary" disabled="@_isSaving"
                             @onclick='() => navigationManager.NavigateToRelative("workspaces")'>
                         Cancel
                     </button>
@@ -68,6 +72,7 @@
     public Guid? Id { get; set; }
 
     private Workspace? workspace;
+    private bool _isSaving;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -91,17 +96,24 @@
     private async Task Submit()
     {
         ArgumentNullException.ThrowIfNull(workspace);
-
-        if (Id != null)
+        _isSaving = true;
+        try
         {
-            workspace = await workspaceRepository.UpdateWorkspaceAsync(workspace);
-            if (workspaceState.CurrentWorkspace?.Id == workspace.Id)
+            if (Id != null)
+            {
+                workspace = await workspaceRepository.UpdateWorkspaceAsync(workspace);
+                if (workspaceState.CurrentWorkspace?.Id == workspace.Id)
+                    workspaceState.SetWorkspace(workspace);
+            }
+            else
+            {
+                workspace = await workspaceRepository.CreateWorkspaceAsync(workspace);
                 workspaceState.SetWorkspace(workspace);
+            }
         }
-        else
+        finally
         {
-            workspace = await workspaceRepository.CreateWorkspaceAsync(workspace);
-            workspaceState.SetWorkspace(workspace);
+            _isSaving = false;
         }
 
         navigationManager.NavigateToRelative("workspaces");

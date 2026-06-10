@@ -76,7 +76,13 @@ else
                 </TemplateColumn>
                 <TemplateColumn Title="" Class="domain-col-delete">
                     <button type="button" class="btn btn-outline-danger btn-sm"
-                            @onclick="() => DeleteDomain(context)">Delete</button>
+                            @onclick="() => DeleteDomain(context)" disabled="@(_deletingId == context.Id)">
+                        @if (_deletingId == context.Id)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        }
+                        Delete
+                    </button>
                 </TemplateColumn>
             </QuickGrid>
         </div>
@@ -104,6 +110,7 @@ else
 
     private ICollection<Domain> domains = [];
     private Guid? expandedId;
+    private Guid? _deletingId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,10 +150,18 @@ else
 
     public async Task DeleteDomain(Domain domain)
     {
-        if (expandedId == domain.Id)
-            expandedId = null;
-        await domainRepository.DeleteDomainAsync(domain.Id!.Value);
-        domains.Remove(domain);
+        _deletingId = domain.Id;
+        try
+        {
+            if (expandedId == domain.Id)
+                expandedId = null;
+            await domainRepository.DeleteDomainAsync(domain.Id!.Value);
+            domains.Remove(domain);
+        }
+        finally
+        {
+            _deletingId = null;
+        }
     }
 
     public async Task EditDomain(Domain domain)

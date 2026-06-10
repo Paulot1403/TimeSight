@@ -74,7 +74,7 @@
             {
                 <div class="panel-subtask-row">
                     <span class="panel-subtask-name">@parentChore.Name</span>
-                    <button class="panel-subtask-remove" title="Remove parent link" @onclick="RemoveParent">
+                    <button class="panel-subtask-remove" title="Remove parent link" @onclick="RemoveParent" disabled="@_isBusy">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                              stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18" />
@@ -92,7 +92,7 @@
                     <ul class="dropdown-menu">
                         @foreach (var chore in availableParents)
                         {
-                            <li><a class="dropdown-item" @onclick="() => SetParent(chore)">@chore.Name</a></li>
+                            <li><a class="dropdown-item @(_isBusy ? "disabled" : "")" @onclick="() => SetParent(chore)">@chore.Name</a></li>
                         }
                     </ul>
                 </div>
@@ -107,7 +107,7 @@
                 {
                     <div class="panel-subtask-row">
                         <span class="panel-subtask-name">@sub.Name</span>
-                        <button class="panel-subtask-remove" title="Remove subtask link" @onclick="() => RemoveSubtask(sub)">
+                        <button class="panel-subtask-remove" title="Remove subtask link" @onclick="() => RemoveSubtask(sub)" disabled="@_isBusy">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                  stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -127,7 +127,7 @@
                 {
                     <div class="domain-intensity-row">
                         <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)">
+                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)" disabled="@_isBusy">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18" />
@@ -161,7 +161,7 @@
                         <ul class="dropdown-menu">
                             @foreach (var domain in LocalDomainsNotSelected)
                             {
-                                <li><a class="dropdown-item" @onclick="() => AddDomain(domain)">@domain.Name</a></li>
+                                <li><a class="dropdown-item @(_isBusy ? "disabled" : "")" @onclick="() => AddDomain(domain)">@domain.Name</a></li>
                             }
                         </ul>
                     </div>
@@ -184,8 +184,14 @@
     </div>
 
     <div class="chore-panel-footer">
-        <button class="btn btn-primary" @onclick="Save">Save</button>
-        <button class="btn btn-outline-secondary" @onclick="OnClose">Cancel</button>
+        <button class="btn btn-primary" @onclick="Save" disabled="@(_isSaving || _isBusy)">
+            @if (_isSaving)
+            {
+                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            }
+            @(_isSaving ? "Saving…" : "Save")
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="OnClose" disabled="@_isSaving">Cancel</button>
     </div>
 </div>
 
@@ -205,6 +211,8 @@
 
     private ElementReference nameInputRef;
     private bool _shouldFocus = false;
+    private bool _isSaving;
+    private bool _isBusy;
     private string editName = string.Empty;
     private string? editDescription;
     private bool descriptionPreview = false;
@@ -282,73 +290,106 @@
 
     private async Task AddDomain(Domain domain)
     {
-        await choreDomainService.AddLink(Chore!, domain);
-        intensities[domain.Id!.Value] = ChoreDomain.DEFAULT_LINK_INTENSITY;
+        _isBusy = true;
+        try
+        {
+            await choreDomainService.AddLink(Chore!, domain);
+            intensities[domain.Id!.Value] = ChoreDomain.DEFAULT_LINK_INTENSITY;
+        }
+        finally { _isBusy = false; }
     }
 
     private async Task RemoveDomain(Domain domain)
     {
-        await choreDomainService.RemoveLink(Chore!, domain);
-        intensities.Remove(domain.Id!.Value);
+        _isBusy = true;
+        try
+        {
+            await choreDomainService.RemoveLink(Chore!, domain);
+            intensities.Remove(domain.Id!.Value);
+        }
+        finally { _isBusy = false; }
     }
 
     private async Task SetParent(Chore parent)
     {
         ArgumentNullException.ThrowIfNull(Chore);
-        await choreService.SetParent(Chore, parent);
-        await OnHierarchyChanged.InvokeAsync();
+        _isBusy = true;
+        try
+        {
+            await choreService.SetParent(Chore, parent);
+            await OnHierarchyChanged.InvokeAsync();
+        }
+        finally { _isBusy = false; }
     }
 
     private async Task RemoveSubtask(Chore child)
     {
-        await choreService.RemoveParent(child);
-        await OnHierarchyChanged.InvokeAsync();
+        _isBusy = true;
+        try
+        {
+            await choreService.RemoveParent(child);
+            await OnHierarchyChanged.InvokeAsync();
+        }
+        finally { _isBusy = false; }
     }
 
     private async Task RemoveParent()
     {
         ArgumentNullException.ThrowIfNull(Chore);
-        await choreService.RemoveParent(Chore);
-        await OnHierarchyChanged.InvokeAsync();
+        _isBusy = true;
+        try
+        {
+            await choreService.RemoveParent(Chore);
+            await OnHierarchyChanged.InvokeAsync();
+        }
+        finally { _isBusy = false; }
     }
 
     private async Task Save()
     {
-        bool choreChanged = false;
-        var trimmed = editName.Trim();
-        if (!string.IsNullOrEmpty(trimmed) && trimmed != Chore!.Name)
+        _isSaving = true;
+        try
         {
-            Chore.Name = trimmed;
-            choreChanged = true;
-        }
-        if (editDuration != Chore!.Duration)
-        {
-            Chore.Duration = editDuration;
-            choreChanged = true;
-        }
-        if (editDescription != Chore!.Description)
-        {
-            Chore.Description = editDescription;
-            choreChanged = true;
-        }
-        if (editRecurrenceIntervalDays != Chore!.RecurrenceIntervalDays)
-        {
-            Chore.RecurrenceIntervalDays = editRecurrenceIntervalDays;
-            choreChanged = true;
-        }
-        if (choreChanged)
-            await choreService.UpdateChoreAsync(Chore);
-
-        if (!Chore.IsSubtask)
-        {
-            foreach (var cd in Chore!.ChoreDomains)
+            bool choreChanged = false;
+            var trimmed = editName.Trim();
+            if (!string.IsNullOrEmpty(trimmed) && trimmed != Chore!.Name)
             {
-                if (intensities.TryGetValue(cd.DomainId, out var newIntensity) && newIntensity != cd.LinkIntensity)
+                Chore.Name = trimmed;
+                choreChanged = true;
+            }
+            if (editDuration != Chore!.Duration)
+            {
+                Chore.Duration = editDuration;
+                choreChanged = true;
+            }
+            if (editDescription != Chore!.Description)
+            {
+                Chore.Description = editDescription;
+                choreChanged = true;
+            }
+            if (editRecurrenceIntervalDays != Chore!.RecurrenceIntervalDays)
+            {
+                Chore.RecurrenceIntervalDays = editRecurrenceIntervalDays;
+                choreChanged = true;
+            }
+            if (choreChanged)
+                await choreService.UpdateChoreAsync(Chore);
+
+            if (!Chore.IsSubtask)
+            {
+                foreach (var cd in Chore!.ChoreDomains)
                 {
-                    cd.LinkIntensity = newIntensity;
-                    await choreDomainRepository.UpdateChoreDomainAsync(cd);
+                    if (intensities.TryGetValue(cd.DomainId, out var newIntensity) && newIntensity != cd.LinkIntensity)
+                    {
+                        cd.LinkIntensity = newIntensity;
+                        await choreDomainRepository.UpdateChoreDomainAsync(cd);
+                    }
                 }
             }
+        }
+        finally
+        {
+            _isSaving = false;
         }
 
         await OnClose.InvokeAsync();

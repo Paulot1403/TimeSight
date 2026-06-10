@@ -36,13 +36,20 @@ else
                 </svg>
                 Sort
             </button>
-            <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                New task
+            <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore" disabled="@_isAdding">
+                @if (_isAdding)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                }
+                @(_isAdding ? "Adding…" : "New task")
             </button>
         </div>
     </div>
@@ -111,6 +118,7 @@ else
     private bool subtasksOnly = false;
     private HashSet<Guid> selectedDomainIds = [];
 
+    private bool _isAdding;
     private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
 
     private List<(Chore chore, int depth)> orderedChores = [];
@@ -183,12 +191,20 @@ else
 
     private async Task AddChore()
     {
-        var wsId = workspaceState.CurrentWorkspace?.Id
-            ?? throw new InvalidOperationException("No workspace selected");
-        Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
-        _newlyAddedChoreId = chore.Id;
-        choresDic.Add(chore.Id, chore);
-        RebuildOrderedChores();
+        _isAdding = true;
+        try
+        {
+            var wsId = workspaceState.CurrentWorkspace?.Id
+                ?? throw new InvalidOperationException("No workspace selected");
+            Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
+            _newlyAddedChoreId = chore.Id;
+            choresDic.Add(chore.Id, chore);
+            RebuildOrderedChores();
+        }
+        finally
+        {
+            _isAdding = false;
+        }
     }
 
     private void ToggleShowDone()

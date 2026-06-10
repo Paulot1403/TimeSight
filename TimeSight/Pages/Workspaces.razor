@@ -57,7 +57,11 @@
                         Edit
                     </button>
                     <button type="button" class="btn btn-outline-danger btn-sm"
-                            @onclick="() => Delete(ws)">
+                            @onclick="() => Delete(ws)" disabled="@_deletingIds.Contains(ws.Id!.Value)">
+                        @if (_deletingIds.Contains(ws.Id!.Value))
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        }
                         Delete
                     </button>
                 </div>
@@ -71,6 +75,7 @@
     public Guid? UserId { get; set; }
 
     private List<Workspace> workspaces = [];
+    private HashSet<Guid> _deletingIds = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,9 +85,17 @@
 
     private async Task Delete(Workspace ws)
     {
-        if (workspaceState.CurrentWorkspace?.Id == ws.Id)
-            workspaceState.SetWorkspace(workspaces.FirstOrDefault(w => w.Id != ws.Id)!);
-        await workspaceRepository.DeleteWorkspaceAsync(ws.Id!.Value);
-        workspaces.Remove(ws);
+        _deletingIds.Add(ws.Id!.Value);
+        try
+        {
+            if (workspaceState.CurrentWorkspace?.Id == ws.Id)
+                workspaceState.SetWorkspace(workspaces.FirstOrDefault(w => w.Id != ws.Id)!);
+            await workspaceRepository.DeleteWorkspaceAsync(ws.Id!.Value);
+            workspaces.Remove(ws);
+        }
+        finally
+        {
+            _deletingIds.Remove(ws.Id!.Value);
+        }
     }
 }
