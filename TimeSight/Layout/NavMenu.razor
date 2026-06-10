@@ -111,7 +111,10 @@
         workspaceState.OnChanged += OnWorkspaceChanged;
         workspaces = await workspaceRepository.GetWorkspacesAsync();
         if (workspaceState.CurrentWorkspace == null && workspaces.Count > 0)
-            workspaceState.SetWorkspace(workspaces[0]);
+        {
+            var defaultWs = workspaces.FirstOrDefault(w => w.IsDefault) ?? workspaces[0];
+            workspaceState.SetWorkspace(defaultWs);
+        }
         await base.OnInitializedAsync();
     }
 

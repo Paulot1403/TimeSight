@@ -41,6 +41,15 @@
                             <div class="text-muted small">@ws.Description</div>
                         }
                     </div>
+                    @if (ws.IsDefault)
+                    {
+                        <span class="badge bg-warning text-dark d-flex align-items-center gap-1">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            Default
+                        </span>
+                    }
                     @if (isActive)
                     {
                         <span class="badge bg-primary">Active</span>
@@ -50,6 +59,23 @@
                         <button type="button" class="btn btn-outline-secondary btn-sm"
                                 @onclick="() => workspaceState.SetWorkspace(ws)">
                             Switch
+                        </button>
+                    }
+                    @if (!ws.IsDefault)
+                    {
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                @onclick="() => SetDefault(ws)" disabled="@(_settingDefaultId == ws.Id)">
+                            @if (_settingDefaultId == ws.Id)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            }
+                            else
+                            {
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                            }
+                            Set default
                         </button>
                     }
                     <button type="button" class="btn btn-outline-secondary btn-sm"
@@ -76,11 +102,34 @@
 
     private List<Workspace> workspaces = [];
     private HashSet<Guid> _deletingIds = [];
+    private Guid? _settingDefaultId;
 
     protected override async Task OnInitializedAsync()
     {
         workspaces = await workspaceRepository.GetWorkspacesAsync();
         await base.OnInitializedAsync();
+    }
+
+    private async Task SetDefault(Workspace ws)
+    {
+        _settingDefaultId = ws.Id;
+        try
+        {
+            var tasks = new List<Task>();
+            var oldDefault = workspaces.FirstOrDefault(w => w.IsDefault && w.Id != ws.Id);
+            if (oldDefault != null)
+            {
+                oldDefault.IsDefault = false;
+                tasks.Add(workspaceRepository.UpdateWorkspaceAsync(oldDefault));
+            }
+            ws.IsDefault = true;
+            tasks.Add(workspaceRepository.UpdateWorkspaceAsync(ws));
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            _settingDefaultId = null;
+        }
     }
 
     private async Task Delete(Workspace ws)

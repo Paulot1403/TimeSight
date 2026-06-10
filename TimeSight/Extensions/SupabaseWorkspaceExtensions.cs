@@ -13,7 +13,8 @@ public static class SupabaseWorkspaceExtensions
             UserId = sw.UserId,
             Name = sw.Name,
             Color = sw.Color,
-            Description = sw.Description
+            Description = sw.Description,
+            IsDefault = sw.IsDefault ?? false
         };
     }
 }

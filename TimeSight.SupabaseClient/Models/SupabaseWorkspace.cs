@@ -20,4 +20,7 @@ public class SupabaseWorkspace : BaseModel
 
     [Column("description")]
     public string? Description { get; set; }
+
+    [Column("is_default")]
+    public bool? IsDefault { get; set; }
 }

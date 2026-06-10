@@ -13,7 +13,8 @@ public static class WorkspaceExtensions
             UserId = workspace.UserId,
             Name = workspace.Name,
             Color = workspace.Color,
-            Description = workspace.Description
+            Description = workspace.Description,
+            IsDefault = workspace.IsDefault
         };
     }
 }
