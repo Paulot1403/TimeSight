@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TimeSight.Models;
 using TimeSight.Models.Order;
 
@@ -82,7 +78,5 @@ public class OrderChoresService
     {
         return doneScore + (Chore.MAX_DURATION - chore.Duration);
     }
-
-
 
 }

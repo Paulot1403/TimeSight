@@ -94,8 +94,8 @@ public class ChoreService(
         await choreRepository.UpdateChoreAsync(chore);
     }
 
-    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId) =>
-        await choreRepository.CreateChoreAsync(userId, workspaceId);
+    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "") =>
+        await choreRepository.CreateChoreAsync(userId, workspaceId, name);
     public async Task<Chore> UpdateChoreAsync(Chore chore) =>
         await choreRepository.UpdateChoreAsync(chore);
     public async Task DeleteChoreAsync(Chore chore)

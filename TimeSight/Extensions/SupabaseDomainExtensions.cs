@@ -20,7 +20,7 @@ public static class SupabaseDomainExtensions
             Color = supabaseDomain.Color,
             Description = supabaseDomain.Description,
             Importance = supabaseDomain.Importance,
-            DoneScore = supabaseDomain.DoneScore == null ? 0 : int.Parse(supabaseDomain.DoneScore)
+            DoneScore = supabaseDomain.DoneScore == null ? 1 : int.Parse(supabaseDomain.DoneScore)
         };
     }
 }

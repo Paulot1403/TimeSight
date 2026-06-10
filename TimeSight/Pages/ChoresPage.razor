@@ -9,6 +9,7 @@
 @inject IDomainRepository domainRepository;
 @inject OrderChoresService orderChoresService;
 @inject ChoreService choreService;
+@inject ChoreDomainService choreDomainService;
 @inject WorkspaceState workspaceState;
 
 <PageTitle>Tasks — TimeSight</PageTitle>
@@ -27,14 +28,21 @@ else
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="8" y1="12" x2="21" y2="12" />
-                        <line x1="13" y1="18" x2="21" y2="18" />
-                    </svg>
-                    Sort
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order" disabled="@_isSorting">
+                    @if (_isSorting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    }
+                    else
+                    {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="8" y1="12" x2="21" y2="12" />
+                            <line x1="13" y1="18" x2="21" y2="18" />
+                        </svg>
+                    }
+                    @(_isSorting ? "Sorting…" : "Sort")
                 </button>
                 <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore" disabled="@_isAdding">
                     @if (_isAdding)
@@ -119,6 +127,7 @@ else
     private HashSet<Guid> selectedDomainIds = [];
 
     private bool _isAdding;
+    private bool _isSorting;
     private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
 
     private List<(Chore chore, int depth)> orderedChores = [];
@@ -264,9 +273,36 @@ else
         c.Value.ParentChoreId == null ||
         !filteredChoresDic.ContainsKey(c.Value.ParentChoreId.Value)).ToDictionary();
     }
-    private void Order()
+    private async Task Order()
     {
-        _sortedChoreIds = orderChoresService.OrderChores(GetRoots(), domains);
-        RebuildOrderedChores();
+        _isSorting = true;
+        try
+        {
+            _sortedChoreIds = orderChoresService.OrderChores(GetRoots(), domains);
+
+            var wsId = workspaceState.CurrentWorkspace?.Id
+                ?? throw new InvalidOperationException("No workspace selected");
+
+            var domainsWithoutTasks = domains
+                .Where(d => !choresDic.Values.Any(c =>
+                    c.ParentChoreId == null &&
+                    c.ChoreDomains.Any(cd => cd.DomainId == d.Id)))
+                .ToList();
+
+            foreach (var domain in domainsWithoutTasks)
+            {
+                var chore = await choreService.CreateChoreAsync(
+                    UserId!.Value, wsId, $"Plan tasks for {domain.Name}");
+                await choreDomainService.AddLink(chore, domain);
+                choresDic.Add(chore.Id, chore);
+                _sortedChoreIds.Add(chore.Id);
+            }
+
+            RebuildOrderedChores();
+        }
+        finally
+        {
+            _isSorting = false;
+        }
     }
 }

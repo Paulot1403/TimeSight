@@ -46,6 +46,7 @@ else
                     </div>
                 </TemplateColumn>
                 <PropertyColumn Property="d => d.Importance" Title="Importance" />
+                <PropertyColumn Property="d => Domain.ComputePriority(d.DoneScore, d.Importance)" Title="Priority" />
 
                 <TemplateColumn Title="" Class="domain-col-icon">
                     @if (!string.IsNullOrWhiteSpace(context.Description))
@@ -75,8 +76,8 @@ else
                             @onclick="() => EditDomain(context)">Edit</button>
                 </TemplateColumn>
                 <TemplateColumn Title="" Class="domain-col-delete">
-                    <button type="button" class="btn btn-outline-danger btn-sm"
-                            @onclick="() => DeleteDomain(context)" disabled="@(_deletingId == context.Id)">
+                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeleteDomain(context)"
+                            disabled="@(_deletingId == context.Id)">
                         @if (_deletingId == context.Id)
                         {
                             <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>

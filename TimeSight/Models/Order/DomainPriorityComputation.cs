@@ -16,6 +16,6 @@ public class DomainPriorityComputation()
     /// </summary>
     public int CurrentScore { get; set; }
 
-    public float Priority => DomainImportance / (float)CurrentScore;
+    public float Priority => Domain.ComputePriority(CurrentScore, DomainImportance);
 
 }
