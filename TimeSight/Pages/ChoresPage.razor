@@ -20,88 +20,88 @@
 else
 {
 
-<div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-    <div>
-        <h1 class="page-title">Tasks</h1>
-        <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
-        </div>
-        <div class="d-flex align-items-center gap-2 flex-shrink-0">
-            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="8" y1="12" x2="21" y2="12" />
-                    <line x1="13" y1="18" x2="21" y2="18" />
-                </svg>
-                Sort
-            </button>
-            <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore" disabled="@_isAdding">
-                @if (_isAdding)
-                {
-                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                }
-                else
-                {
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="page-title">Tasks</h1>
+            <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="13" y1="18" x2="21" y2="18" />
                     </svg>
-                }
-                @(_isAdding ? "Adding…" : "New task")
-            </button>
-        </div>
-    </div>
-
-    <div class="filter-bar">
-        <div class="filter-row">
-            <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Completed
-            </button>
-
-            <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="ToggleSubtasksOnly">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                </svg>
-                Subtasks only
-            </button>
-        </div>
-
-        <div class="filter-row">
-            @foreach (var domain in domains)
-            {
-                var isActive = selectedDomainIds.Contains(domain.Id!.Value);
-                <button class="filter-pill @(isActive ? "active" : "")" style="--pill-color:@(domain.Color ?? "#6366f1")"
-                        @onclick="() => ToggleDomainFilter(domain.Id!.Value)">
-                    <span class="filter-pill-dot"></span>
-                    @domain.Name
+                    Sort
                 </button>
+                <button type="button" class="btn btn-primary btn-sm" @onclick="AddChore" disabled="@_isAdding">
+                    @if (_isAdding)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    }
+                    else
+                    {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    }
+                    @(_isAdding ? "Adding…" : "New task")
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-row">
+                <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Completed
+                </button>
+
+                <button class="filter-pill @(subtasksOnly ? "active" : "")" @onclick="ToggleSubtasksOnly">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                    Subtasks only
+                </button>
+            </div>
+
+            <div class="filter-row">
+                @foreach (var domain in domains)
+                {
+                    var isActive = selectedDomainIds.Contains(domain.Id!.Value);
+                    <button class="filter-pill @(isActive ? "active" : "")" style="--pill-color:@(domain.Color ?? "#6366f1")"
+                            @onclick="() => ToggleDomainFilter(domain.Id!.Value)">
+                        <span class="filter-pill-dot"></span>
+                        @domain.Name
+                    </button>
+                }
+            </div>
+
+            @if (IsFiltered)
+            {
+                <button class="filter-clear" @onclick="ClearFilters">Clear</button>
             }
         </div>
 
-        @if (IsFiltered)
-        {
-            <button class="filter-clear" @onclick="ClearFilters">Clear</button>
-        }
-    </div>
+        <ul class="chores-list">
+            @foreach (var (chore, depth) in orderedChores)
+            {
+                <ChoreComponent @key="chore.Id" Chore="chore" OnDelete="HandleDelete" allDomains="domains"
+                                OnIsDoneChanged="StateHasChanged" StartEditing="chore.Id == _newlyAddedChoreId" AllChores="choresDic.Values"
+                                Depth="depth" OnHierarchyChanged="RebuildOrderedChores">
+                </ChoreComponent>
+            }
+        </ul>
 
-    <ul class="chores-list">
-        @foreach (var (chore, depth) in orderedChores)
-        {
-            <ChoreComponent @key="chore.Id" Chore="chore" OnDelete="HandleDelete" allDomains="domains" OnIsDoneChanged="StateHasChanged"
-                            StartEditing="chore.Id == _newlyAddedChoreId" AllChores="choresDic.Values" Depth="depth"
-                            OnHierarchyChanged="RebuildOrderedChores">
-            </ChoreComponent>
-        }
-    </ul>
-
-}
+    }
 
 @code {
     [CascadingParameter(Name = "UserId")]
@@ -251,7 +251,7 @@ else
             result = result.Where(c => c.Value.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
         if (subtasksOnly)
             result = result
-            .Where(c => !choresDic.Values.Any(c2 => c2.ParentChoreId == c.Key));
+            .Where(c => c.Value.Children.Count == 0);
         return result.ToDictionary();
     }
     private IDictionary<Guid, Chore> GetRoots()
