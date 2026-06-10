@@ -24,35 +24,7 @@
             <input class="form-control" @bind="editName" @bind:event="oninput" @ref="nameInputRef" />
         </div>
 
-        <div class="mb-4">
-            <div class="d-flex align-items-center justify-content-between mb-1">
-                <label class="form-label mb-0">Description</label>
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn @(descriptionPreview ? "btn-outline-secondary" : "btn-secondary")"
-                            @onclick='() => descriptionPreview = false'>Write</button>
-                    <button type="button" class="btn @(descriptionPreview ? "btn-secondary" : "btn-outline-secondary")"
-                            @onclick='() => descriptionPreview = true'>Preview</button>
-                </div>
-            </div>
-            @if (descriptionPreview)
-            {
-                <div class="panel-markdown-preview">
-                    @if (string.IsNullOrWhiteSpace(editDescription))
-                    {
-                        <span class="text-muted fst-italic" style="font-size:0.85rem">No description.</span>
-                    }
-                    else
-                    {
-                        <MarkdownView Value="@editDescription" />
-                    }
-                </div>
-            }
-            else
-            {
-                <textarea class="form-control" rows="4" placeholder="Markdown supported…" @bind="editDescription"
-                          @bind:event="oninput"></textarea>
-            }
-        </div>
+
 
         <div class="mb-4">
             <label class="form-label">Duration -- <span class="panel-metric-val">@editDuration</span></label>
@@ -65,60 +37,6 @@
                 <span>2 h</span>
             </div>
         </div>
-
- 
-
-        <div class="mb-4">
-            <label class="form-label">Parent task</label>
-            @if (parentChore != null)
-            {
-                <div class="panel-subtask-row">
-                    <span class="panel-subtask-name">@parentChore.Name</span>
-                    <button class="panel-subtask-remove" title="Remove parent link" @onclick="RemoveParent" disabled="@_isBusy">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                </div>
-            }
-            else
-            {
-                <div class="dropdown mt-1">
-                    <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        + parent
-                    </button>
-                    <ul class="dropdown-menu">
-                        @foreach (var chore in availableParents)
-                        {
-                            <li><a class="dropdown-item @(_isBusy ? "disabled" : "")" @onclick="() => SetParent(chore)">@chore.Name</a></li>
-                        }
-                    </ul>
-                </div>
-            }
-        </div>
-
-        @if (subtasks.Any())
-        {
-            <div class="mb-4">
-                <label class="form-label">Subtasks</label>
-                @foreach (var sub in subtasks)
-                {
-                    <div class="panel-subtask-row">
-                        <span class="panel-subtask-name">@sub.Name</span>
-                        <button class="panel-subtask-remove" title="Remove subtask link" @onclick="() => RemoveSubtask(sub)" disabled="@_isBusy">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </button>
-                    </div>
-                }
-            </div>
-        }
-
         @if (!Chore.IsSubtask)
         {
             <div class="mb-4">
@@ -127,7 +45,8 @@
                 {
                     <div class="domain-intensity-row">
                         <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)" disabled="@_isBusy">
+                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)"
+                                    disabled="@_isBusy">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18" />
@@ -161,39 +80,124 @@
                         <ul class="dropdown-menu">
                             @foreach (var domain in LocalDomainsNotSelected)
                             {
-                                <li><a class="dropdown-item @(_isBusy ? "disabled" : "")" @onclick="() => AddDomain(domain)">@domain.Name</a></li>
-                            }
-                        </ul>
+                                <li><a class="dropdown-item @(_isBusy ? "disabled" : "")"
+                                           @onclick="() => AddDomain(domain)">@domain.Name</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            }
+            <div class="mb-4">
+                <label class="form-label">Parent task</label>
+                @if (parentChore != null)
+                {
+                    <div class="panel-subtask-row">
+                        <span class="panel-subtask-name">@parentChore.Name</span>
+                        <button class="panel-subtask-remove" title="Remove parent link" @onclick="RemoveParent"
+                                disabled="@_isBusy">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
                     </div>
                 }
+                else
+                {
+                    <div class="dropdown mt-1">
+                        <button class="btn-add-domain" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            + parent
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach (var chore in availableParents)
+                            {
+                                <li><a class="dropdown-item @(_isBusy ? "disabled" : "")"
+                                           @onclick="() => SetParent(chore)">@chore.Name</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+
+                @if (subtasks.Any())
+                {
+                    <div class="mb-4">
+                        <label class="form-label">Subtasks</label>
+                        @foreach (var sub in subtasks)
+                        {
+                            <div class="panel-subtask-row">
+                                <span class="panel-subtask-name">@sub.Name</span>
+                                <button class="panel-subtask-remove" title="Remove subtask link" @onclick="() => RemoveSubtask(sub)"
+                                        disabled="@_isBusy">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                         stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+
+            
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="form-label mb-0">Description</label>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn @(descriptionPreview ? "btn-outline-secondary" : "btn-secondary")"
+                                    @onclick='() => descriptionPreview = false'>Write</button>
+                            <button type="button" class="btn @(descriptionPreview ? "btn-secondary" : "btn-outline-secondary")"
+                                    @onclick='() => descriptionPreview = true'>Preview</button>
+                        </div>
+                    </div>
+                    @if (descriptionPreview)
+                    {
+                        <div class="panel-markdown-preview">
+                            @if (string.IsNullOrWhiteSpace(editDescription))
+                            {
+                                <span class="text-muted fst-italic" style="font-size:0.85rem">No description.</span>
+                            }
+                            else
+                            {
+                                <MarkdownView Value="@editDescription" />
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <textarea class="form-control" rows="4" placeholder="Markdown supported…" @bind="editDescription"
+                                  @bind:event="oninput"></textarea>
+                    }
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Recurrence</label>
+                    <select class="form-control" @bind="editRecurrenceStr">
+                        <option value="0">No recurrence</option>
+                        <option value="1">Every day</option>
+                        <option value="3">Every 3 days</option>
+                        <option value="7">Every week</option>
+                        <option value="14">Every 2 weeks</option>
+                        <option value="30">Every month</option>
+                        <option value="60">Every 2 months</option>
+                    </select>
+                </div>
+
             </div>
-        }
-        <div class="mb-4">
-            <label class="form-label">Recurrence</label>
-            <select class="form-control" @bind="editRecurrenceStr">
-                <option value="0">No recurrence</option>
-                <option value="1">Every day</option>
-                <option value="3">Every 3 days</option>
-                <option value="7">Every week</option>
-                <option value="14">Every 2 weeks</option>
-                <option value="30">Every month</option>
-                <option value="60">Every 2 months</option>
-            </select>
+
+            <div class="chore-panel-footer">
+                <button class="btn btn-primary" @onclick="Save" disabled="@(_isSaving || _isBusy)">
+                    @if (_isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    }
+                    @(_isSaving ? "Saving…" : "Save")
+                </button>
+                <button class="btn btn-outline-secondary" @onclick="OnClose" disabled="@_isSaving">Cancel</button>
+            </div>
         </div>
-
-    </div>
-
-    <div class="chore-panel-footer">
-        <button class="btn btn-primary" @onclick="Save" disabled="@(_isSaving || _isBusy)">
-            @if (_isSaving)
-            {
-                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            }
-            @(_isSaving ? "Saving…" : "Save")
-        </button>
-        <button class="btn btn-outline-secondary" @onclick="OnClose" disabled="@_isSaving">Cancel</button>
-    </div>
-</div>
 
 @code {
     [Parameter, EditorRequired] public Chore? Chore { get; set; }
