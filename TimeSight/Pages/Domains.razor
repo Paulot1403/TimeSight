@@ -18,82 +18,84 @@
 }
 else
 {
-<div class="domains-wrap">
-    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-            <h1 class="page-title">Domains</h1>
-            <p class="text-muted small mb-0">Categories for your tasks</p>
-        </div>
-        <div class="flex-shrink-0">
-            <button type="button" class="btn btn-primary btn-sm" @onclick="AddDomain">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                New domain
-            </button>
-        </div>
-    </div>
-
-    <div class="border rounded overflow-hidden">
-        <QuickGrid Items="domains.AsQueryable()">
-            <TemplateColumn Title="Name">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="domain-color-dot flex-shrink-0"
-                          style="background:@(context.Color ?? "#6366f1")"></span>
-                    @context.Name
-                </div>
-            </TemplateColumn>
-            <TemplateColumn Title="" Class="domain-col-icon">
-                @if (!string.IsNullOrWhiteSpace(context.Description))
-                {
-                    <button type="button" class="btn btn-outline-secondary btn-sm"
-                            @onclick="() => ToggleDescription(context.Id!.Value)"
-                            title="@(expandedId == context.Id!.Value ? "Hide description" : "Show description")">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            @if (expandedId == context.Id!.Value)
-                            {
-                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                                <line x1="1" y1="1" x2="23" y2="23" />
-                            }
-                            else
-                            {
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
-                            }
-                        </svg>
-                    </button>
-                }
-            </TemplateColumn>
-            <TemplateColumn Title="" Class="domain-col-edit">
-                <button type="button" class="btn btn-outline-secondary btn-sm"
-                        @onclick="() => EditDomain(context)">Edit</button>
-            </TemplateColumn>
-            <TemplateColumn Title="" Class="domain-col-delete">
-                <button type="button" class="btn btn-outline-danger btn-sm"
-                        @onclick="() => DeleteDomain(context)">Delete</button>
-            </TemplateColumn>
-        </QuickGrid>
-    </div>
-
-    @if (expandedId is Guid id)
-    {
-        var domain = domains.FirstOrDefault(d => d.Id == id);
-        if (domain is not null)
-        {
-            <div class="domain-description-panel mt-3 p-3 border rounded">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="domain-color-dot flex-shrink-0" style="background:@(domain.Color ?? "#6366f1")"></span>
-                    <strong>@domain.Name</strong>
-                </div>
-                <MarkdownView Value="@domain.Description" />
+    <div class="domains-wrap">
+        <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+            <div>
+                <h1 class="page-title">Domains</h1>
+                <p class="text-muted small mb-0">Categories for your tasks</p>
             </div>
+            <div class="flex-shrink-0">
+                <button type="button" class="btn btn-primary btn-sm" @onclick="AddDomain">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    New domain
+                </button>
+            </div>
+        </div>
+
+        <div class="border rounded overflow-hidden">
+            <QuickGrid Items="domains.AsQueryable()">
+                <TemplateColumn Title="Name">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="domain-color-dot flex-shrink-0"
+                              style="background:@(context.Color ?? "#6366f1")"></span>
+                        @context.Name
+                    </div>
+                </TemplateColumn>
+                <PropertyColumn Property="d => d.Importance" Title="Importance" />
+
+                <TemplateColumn Title="" Class="domain-col-icon">
+                    @if (!string.IsNullOrWhiteSpace(context.Description))
+                    {
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                @onclick="() => ToggleDescription(context.Id!.Value)"
+                                title="@(expandedId == context.Id!.Value ? "Hide description" : "Show description")">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                @if (expandedId == context.Id!.Value)
+                                {
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                }
+                                else
+                                {
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                }
+                            </svg>
+                        </button>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="" Class="domain-col-edit">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            @onclick="() => EditDomain(context)">Edit</button>
+                </TemplateColumn>
+                <TemplateColumn Title="" Class="domain-col-delete">
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                            @onclick="() => DeleteDomain(context)">Delete</button>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+
+        @if (expandedId is Guid id)
+        {
+            var domain = domains.FirstOrDefault(d => d.Id == id);
+            if (domain is not null)
+            {
+                <div class="domain-description-panel mt-3 p-3 border rounded">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="domain-color-dot flex-shrink-0" style="background:@(domain.Color ?? "#6366f1")"></span>
+                        <strong>@domain.Name</strong>
+                    </div>
+                    <MarkdownView Value="@domain.Description" />
+                </div>
+            }
         }
-    }
-</div>
+    </div>
 }
 
 @code {
@@ -122,6 +124,8 @@ else
             domains = await domainRepository.GetDomainsAsync(wsId);
         else
             domains = [];
+
+        domains = domains.OrderByDescending(d => d.Importance).ToList();
         expandedId = null;
     }
 
