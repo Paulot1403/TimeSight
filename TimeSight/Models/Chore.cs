@@ -13,7 +13,15 @@ public class Chore
     public required Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
     public required Guid Id { get; set; }
-    public bool IsDone { get; set; } = false;
+    public bool IsDone
+    {
+        get; set
+        {
+            bool isDone = value;
+            DoneAt = isDone ? DateTime.UtcNow : null;
+            field = isDone;
+        }
+    } = false;
 
     /// <summary>
     /// De 1 à <see cref="Chore.MAX_DURATION"/> ?
@@ -64,6 +72,6 @@ public class Chore
         if (cd == null)
             return 0;
 
-        return domain.Importance * cd.LinkIntensity;
+        return cd.LinkIntensity;
     }
 }

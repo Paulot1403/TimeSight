@@ -7,6 +7,7 @@ namespace TimeSight.Models;
 
 public class Domain
 {
+    public const int MAX_IMPORTANCE = 10;
     public required Guid UserId { get; set; }
     public required Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
@@ -15,6 +16,5 @@ public class Domain
     public int Importance { get; set; } = 3;
     public Guid? Id { get; set; }
     public List<ChoreDomain> ChoreDomains { get; set; } = [];
-
-    public int CurrentDoneScore { get; set; }
+    public int DoneScore { get; set; }
 }

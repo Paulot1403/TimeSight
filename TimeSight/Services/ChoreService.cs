@@ -9,7 +9,8 @@ namespace TimeSight.Services;
 
 public class ChoreService(
     IChoreRepository choreRepository,
-    IChoreDomainRepository choreDomainRepository)
+    IChoreDomainRepository choreDomainRepository,
+    IDomainRepository domainRepository)
 {
     public async Task<IDictionary<Guid, Chore>> GetChoresAsync(Guid workspaceId)
     {
@@ -32,6 +33,26 @@ public class ChoreService(
             }
         });
         return choresDic;
+    }
+
+    public async Task SetDoneState(Chore chore, ICollection<Domain> allDomains, bool isDone)
+    {
+        chore.IsDone = isDone;
+        await UpdateChoreAsync(chore);
+        var associatedDomains = allDomains.Where(d => chore.ChoreDomains.Any(cd => cd.DomainId == d.Id));
+        foreach (var domain in associatedDomains)
+        {
+            int score = chore.GetScoreForDomain(domain);
+            if (isDone)
+            {
+                domain.DoneScore += score;
+            }
+            else
+            {
+                domain.DoneScore -= score;
+            }
+            await domainRepository.UpdateDomainAsync(domain);
+        }
     }
     public async Task SetParent(Chore chore, Chore parent)
     {

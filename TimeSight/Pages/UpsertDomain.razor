@@ -14,7 +14,7 @@
 
 @if (domain != null)
 {
-    <div class="card" style="max-width:460px">
+    <div class="card" style="max-width:600px">
         <div class="card-body p-4">
             <h2 class="card-title border-bottom pb-3 mb-4">@(Id != null ? "Edit domain" : "New domain")</h2>
 
@@ -36,11 +36,18 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" for="domain-importance">
-                        Importance — <strong>@domain.Importance</strong>/5
+                    <label class="form-label d-block" for="domain-importance">
+                        Importance — <strong>@domain.Importance</strong>/@Domain.MAX_IMPORTANCE
                     </label>
-                    <input type="range" id="domain-importance" class="form-range" min="1" max="5" step="1"
-                           value="@domain.Importance" @oninput="OnImportanceChanged" />
+                    <div style="width:100%">
+                        <input type="range" id="domain-importance" class="form-range w-100" min="1"
+                               max="@Domain.MAX_IMPORTANCE" step="1" value="@domain.Importance"
+                               @oninput="OnImportanceChanged" />
+                        <div class="d-flex justify-content-between mt-1 importance-labels">
+                            <span>Negligible </span>
+                            <span>Essential</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3">

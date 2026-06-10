@@ -1265,3 +1265,4 @@ table.quickgrid {
         width: calc(100vw - 2rem);
     }
 }
+.importance-labels { font-size: 0.75rem; color: var(--bs-secondary-color); }

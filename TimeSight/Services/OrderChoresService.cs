@@ -35,11 +35,12 @@ public class OrderChoresService
 
         })];
 
-        List<DomainScoreComputation> domainsScore = [.. domains.Select(d =>
+        List<DomainPriorityComputation> domainsScore = [.. domains.Select(d =>
         {
-            return new DomainScoreComputation(){
+            return new DomainPriorityComputation(){
                 DomainId=(Guid)d.Id,
-                CurrentScore= d.CurrentDoneScore
+                CurrentScore= d.DoneScore,
+                DomainImportance=d.Importance
             };
         })];
 
@@ -48,18 +49,18 @@ public class OrderChoresService
 
         while (prioritiesForDomains.Count != 0 && domainsScore.Count != 0)
         {
-            DomainScoreComputation leastDoneDomain = domainsScore.MinBy(d => d.CurrentScore)!;
+            DomainPriorityComputation prioritizedDomain = domainsScore.MaxBy(d => d.Priority)!;
             // TODO  : manage case when no chores is done with this domain and add one to say that this domain needs tasks
 
-            ICollection<ChorePriorityForDomain> prioritiesForThisDomain = [.. prioritiesForDomains
-                .Where(s => s.DomainId == leastDoneDomain.DomainId)];
-            if (prioritiesForThisDomain.Count == 0)
+            ICollection<ChorePriorityForDomain> prioritizedChoresForThisDomain = [.. prioritiesForDomains
+                .Where(s => s.DomainId == prioritizedDomain.DomainId)];
+            if (prioritizedChoresForThisDomain.Count == 0)
             {
-                domainsScore.Remove(leastDoneDomain);
+                domainsScore.Remove(prioritizedDomain);
                 continue;
             }
 
-            ChorePriorityForDomain maximumPriorityForThisDomain = prioritiesForThisDomain.MaxBy(s => s.Priority);
+            ChorePriorityForDomain maximumPriorityForThisDomain = prioritizedChoresForThisDomain.MaxBy(s => s.Priority);
             Guid choreIdToDo = maximumPriorityForThisDomain.ChoreId;
             sortedChores.Add(choreIdToDo);
             ICollection<ChorePriorityForDomain> prioritiesForThisChore = [.. prioritiesForDomains.Where(s => s.ChoreId == choreIdToDo)];
@@ -81,5 +82,7 @@ public class OrderChoresService
     {
         return doneScore + (Chore.MAX_DURATION - chore.Duration);
     }
+
+
 
 }

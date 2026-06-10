@@ -1,6 +1,6 @@
 @using TimeSight.Services
 @using TimeSight.repositories
-@inject IChoreRepository choreRepository
+@inject ChoreService choreService
 @inject ChoreDomainService choreDomainService
 
 @if (Chore == null)
@@ -67,8 +67,8 @@ else
 
             @if (showPanel)
             {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains"
-                                  OnClose="ClosePanel" AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains" OnClose="ClosePanel"
+                                  AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
             }
         </li>
     }
@@ -155,9 +155,8 @@ else
 
     private async Task ToggleDone(ChangeEventArgs e)
     {
-        Chore!.IsDone = (bool)e.Value!;
-        Chore.DoneAt = Chore.IsDone ? DateTime.UtcNow : null;
-        await choreRepository.UpdateChoreAsync(Chore);
+        bool isDone = (bool)e.Value!;
+        await choreService.SetDoneState(Chore!, allDomains!, isDone);
         await OnIsDoneChanged.InvokeAsync();
     }
 
@@ -171,14 +170,14 @@ else
     {
         await choreDomainService.ClearLinks(Chore!);
         Chore!.ParentChoreId = parent.Id;
-        await choreRepository.UpdateChoreAsync(Chore);
+        await choreService.UpdateChoreAsync(Chore);
         await OnHierarchyChanged.InvokeAsync();
     }
 
     private async Task UnlinkFromParent()
     {
         Chore!.ParentChoreId = null;
-        await choreRepository.UpdateChoreAsync(Chore);
+        await choreService.UpdateChoreAsync(Chore);
         await OnHierarchyChanged.InvokeAsync();
     }
 

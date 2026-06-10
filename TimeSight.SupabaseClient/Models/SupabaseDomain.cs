@@ -6,6 +6,8 @@ namespace TimeSight.SupabaseClient.Models;
 [Table("domains")]
 public class SupabaseDomain : BaseModel
 {
+    [PrimaryKey("id", false)]
+    public Guid? Id { get; set; }
     [Column("user_id")]
     public Guid UserId { get; set; }
     [Column("workspace_id")]
@@ -18,8 +20,10 @@ public class SupabaseDomain : BaseModel
     public string? Description { get; set; }
     [Column("importance")]
     public int Importance { get; set; } = 3;
-    [PrimaryKey("id", false)]
-    public Guid? Id { get; set; }
+
+    [Column("done_score")]
+    public string DoneScore { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
 
     public bool ShouldSerializeSupabaseChoreDomains() => false;
