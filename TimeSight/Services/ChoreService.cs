@@ -44,8 +44,7 @@ public class ChoreService(
                         && (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value)
             .ToList();
 
-        foreach (var chore in expired)
-            await SetDoneState(chore, domains, false, false);
+        await Task.WhenAll(expired.Select(c => SetDoneState(c, domains, false, false)));
     }
 
     public async Task SetDoneState(
@@ -59,23 +58,18 @@ public class ChoreService(
 
         if (changeDomainsScore)
         {
-            var associatedDomains = allDomains.Where(d => chore.ChoreDomains.Any(cd => cd.DomainId == d.Id));
+            var associatedDomains = allDomains
+                .Where(d => chore.ChoreDomains.Any(cd => cd.DomainId == d.Id))
+                .ToList();
 
             foreach (var domain in associatedDomains)
             {
                 int score = chore.GetScoreForDomain(domain);
-                if (isDone)
-                {
-                    domain.DoneScore += score;
-                }
-                else
-                {
-                    domain.DoneScore -= score;
-                }
-                await domainRepository.UpdateDomainAsync(domain);
+                domain.DoneScore += isDone ? score : -score;
             }
-        }
 
+            await Task.WhenAll(associatedDomains.Select(domainRepository.UpdateDomainAsync));
+        }
     }
     public async Task SetParent(Chore chore, Chore parent)
     {

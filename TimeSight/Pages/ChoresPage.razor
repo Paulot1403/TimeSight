@@ -140,8 +140,11 @@ else
     {
         if (workspaceState.CurrentWorkspace?.Id is Guid wsId)
         {
-            choresDic = await choreService.GetChoresAsync(wsId);
-            domains = await domainRepository.GetDomainsAsync(wsId);
+            var choresTask = choreService.GetChoresAsync(wsId);
+            var domainsTask = domainRepository.GetDomainsAsync(wsId);
+            await Task.WhenAll(choresTask, domainsTask);
+            choresDic = choresTask.Result;
+            domains = domainsTask.Result;
             await choreService.ResetExpiredRecurringChoresAsync(choresDic.Values, domains);
         }
         else

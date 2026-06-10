@@ -26,7 +26,6 @@ public class ChoreDomainService(IChoreDomainRepository choreDomainRepository)
     {
         var toRemove = chore.ChoreDomains.ToList();
         chore.ChoreDomains.Clear();
-        foreach (var cd in toRemove)
-            await choreDomainRepository.DeleteChoreDomainAsync(cd.ChoreId, cd.DomainId);
+        await Task.WhenAll(toRemove.Select(cd => choreDomainRepository.DeleteChoreDomainAsync(cd.ChoreId, cd.DomainId)));
     }
 }
