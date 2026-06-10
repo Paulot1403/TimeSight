@@ -534,13 +534,21 @@ label,
     font-size: 0.975rem;
     font-weight: 500;
     color: var(--text);
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     transition: color var(--t) var(--ease);
     margin-bottom: 0.35rem;
     cursor: pointer;
+}
+
+.chore-recurrence-icon {
+    flex-shrink: 0;
+    opacity: 0.5;
+    color: var(--accent);
 }
 
 .chore-name-input {

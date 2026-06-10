@@ -67,6 +67,19 @@
         </div>
 
         <div class="mb-4">
+            <label class="form-label">Recurrence</label>
+            <select class="form-control" @bind="editRecurrenceStr">
+                <option value="0">No recurrence</option>
+                <option value="1">Every day</option>
+                <option value="3">Every 3 days</option>
+                <option value="7">Every week</option>
+                <option value="14">Every 2 weeks</option>
+                <option value="30">Every month</option>
+                <option value="60">Every 2 months</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
             <label class="form-label">Parent task</label>
             @if (parentChore != null)
             {
@@ -195,6 +208,12 @@
     private string? editDescription;
     private bool descriptionPreview = false;
     private int editDuration;
+    private int? editRecurrenceIntervalDays;
+    private string editRecurrenceStr
+    {
+        get => editRecurrenceIntervalDays?.ToString() ?? "0";
+        set => editRecurrenceIntervalDays = value == "0" ? null : int.Parse(value);
+    }
     private Dictionary<Guid, int> intensities = [];
 
 
@@ -237,6 +256,7 @@
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
         editDuration = Chore?.Duration ?? 1;
+        editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
 
         intensities = Chore?.ChoreDomains
             .ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity) ?? [];
@@ -308,6 +328,11 @@
         if (editDescription != Chore!.Description)
         {
             Chore.Description = editDescription;
+            choreChanged = true;
+        }
+        if (editRecurrenceIntervalDays != Chore!.RecurrenceIntervalDays)
+        {
+            Chore.RecurrenceIntervalDays = editRecurrenceIntervalDays;
             choreChanged = true;
         }
         if (choreChanged)

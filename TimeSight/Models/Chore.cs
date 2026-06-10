@@ -35,6 +35,8 @@ public class Chore
 
     public DateTime? DoneAt { get; set; }
 
+    public int? RecurrenceIntervalDays { get; set; }
+
     public Chore? ParentChore
     {
         get; set

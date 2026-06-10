@@ -22,6 +22,7 @@ public static class ChoreExtensions
             Description = chore.Description,
             ParentChoreId = chore.ParentChoreId,
             DoneAt = chore.DoneAt,
+            RecurrenceIntervalDays = chore.RecurrenceIntervalDays,
             SupabaseChoreDomains = chore.ChoreDomains.Select(cd => cd.ToSupabaseChoreDomain()).ToList()
         };
     }

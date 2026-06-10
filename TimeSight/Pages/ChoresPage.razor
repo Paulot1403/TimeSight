@@ -134,6 +134,7 @@ else
         {
             choresDic = await choreService.GetChoresAsync(wsId);
             domains = await domainRepository.GetDomainsAsync(wsId);
+            await choreService.ResetExpiredRecurringChoresAsync(choresDic.Values, domains);
         }
         else
         {

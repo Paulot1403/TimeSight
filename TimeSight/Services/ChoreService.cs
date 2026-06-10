@@ -35,24 +35,47 @@ public class ChoreService(
         return choresDic;
     }
 
-    public async Task SetDoneState(Chore chore, ICollection<Domain> allDomains, bool isDone)
+    public async Task ResetExpiredRecurringChoresAsync(ICollection<Chore> chores, ICollection<Domain> domains)
+    {
+        var expired = chores
+            .Where(c => c.RecurrenceIntervalDays.HasValue
+                        && c.IsDone
+                        && c.DoneAt.HasValue
+                        && (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value)
+            .ToList();
+
+        foreach (var chore in expired)
+            await SetDoneState(chore, domains, false, false);
+    }
+
+    public async Task SetDoneState(
+        Chore chore,
+        ICollection<Domain> allDomains,
+        bool isDone,
+        bool changeDomainsScore = true)
     {
         chore.IsDone = isDone;
         await UpdateChoreAsync(chore);
-        var associatedDomains = allDomains.Where(d => chore.ChoreDomains.Any(cd => cd.DomainId == d.Id));
-        foreach (var domain in associatedDomains)
+
+        if (changeDomainsScore)
         {
-            int score = chore.GetScoreForDomain(domain);
-            if (isDone)
+            var associatedDomains = allDomains.Where(d => chore.ChoreDomains.Any(cd => cd.DomainId == d.Id));
+
+            foreach (var domain in associatedDomains)
             {
-                domain.DoneScore += score;
+                int score = chore.GetScoreForDomain(domain);
+                if (isDone)
+                {
+                    domain.DoneScore += score;
+                }
+                else
+                {
+                    domain.DoneScore -= score;
+                }
+                await domainRepository.UpdateDomainAsync(domain);
             }
-            else
-            {
-                domain.DoneScore -= score;
-            }
-            await domainRepository.UpdateDomainAsync(domain);
         }
+
     }
     public async Task SetParent(Chore chore, Chore parent)
     {

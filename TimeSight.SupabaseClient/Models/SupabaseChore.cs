@@ -42,6 +42,9 @@ public class SupabaseChore : BaseModel
     [Column("done_at")]
     public DateTime? DoneAt { get; set; }
 
+    [Column("recurrence_interval_days")]
+    public int? RecurrenceIntervalDays { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
 
