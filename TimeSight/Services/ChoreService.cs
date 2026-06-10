@@ -80,6 +80,11 @@ public class ChoreService(
         chore.ParentChore = parent;
         parent?.Children.Add(chore);
         await choreRepository.UpdateChoreAsync(chore);
+        if (parent != null && parent.Duration != null)
+        {
+            parent.Duration = null;
+            await choreRepository.UpdateChoreAsync(parent);
+        }
     }
 
     public async Task RemoveParent(Chore chore)

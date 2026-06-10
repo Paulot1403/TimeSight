@@ -221,6 +221,11 @@ else
         await choreDomainService.ClearLinks(Chore!);
         Chore!.ParentChoreId = parent.Id;
         await choreService.UpdateChoreAsync(Chore);
+        if (parent.Duration != null)
+        {
+            parent.Duration = null;
+            await choreService.UpdateChoreAsync(parent);
+        }
         await OnHierarchyChanged.InvokeAsync();
     }
 

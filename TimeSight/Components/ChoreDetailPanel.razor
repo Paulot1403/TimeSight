@@ -26,28 +26,32 @@
 
 
 
-        <div class="mb-4">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <label class="form-label mb-0">Duration</label>
-                <span class="panel-metric-val">@TimeSight.Models.Chore.DurationLabel(editDuration)</span>
-                <div class="form-check form-switch ms-auto mb-0">
-                    <input class="form-check-input" type="checkbox" id="noDurationCheck"
-                           checked="@(editDuration == null)"
-                           @onchange="e => editDuration = (bool)e.Value! ? null : 4" />
-                    <label class="form-check-label small" for="noDurationCheck">No estimate</label>
+        @if (!Subtasks.Any())
+        {
+            <div class="mb-4">
+
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <label class="form-label mb-0">Duration</label>
+                    <span class="panel-metric-val">@TimeSight.Models.Chore.DurationLabel(editDuration)</span>
+                    <div class="form-check form-switch ms-auto mb-0">
+                        <input class="form-check-input" type="checkbox" id="noDurationCheck"
+                               checked="@(editDuration == null)" @onchange="e => editDuration = (bool)e.Value! ? null : 2" />
+                        <label class="form-check-label small" for="noDurationCheck">No estimate</label>
+                    </div>
                 </div>
+                @if (editDuration.HasValue)
+                {
+                    <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
+                           value="@editDuration" @oninput="e => editDuration = int.Parse(e.Value!.ToString()!)" />
+                    <div class="panel-range-labels">
+                        <span>5 min</span>
+                        <span>15 min</span>
+                        <span>45 min</span>
+                        <span>2 h</span>
+                    </div>
+                }
             </div>
-            @if (editDuration.HasValue)
-            {
-                <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
-                       value="@editDuration"
-                       @oninput="e => editDuration = int.Parse(e.Value!.ToString()!)" />
-                <div class="panel-range-labels">
-                    <span>5 min</span>
-                    <span>1 sem.</span>
-                </div>
-            }
-        </div>
+        }
         @if (!Chore.IsSubtask)
         {
             <div class="mb-4">
@@ -132,11 +136,11 @@
                     }
                 </div>
 
-                @if (subtasks.Any())
+                @if (Subtasks.Any())
                 {
                     <div class="mb-4">
                         <label class="form-label">Subtasks</label>
-                        @foreach (var sub in subtasks)
+                        @foreach (var sub in Subtasks)
                         {
                             <div class="panel-subtask-row">
                                 <span class="panel-subtask-name">@sub.Name</span>
@@ -246,9 +250,9 @@
             ? AllChores.FirstOrDefault(c => c.Id == Chore.ParentChoreId)
             : null;
 
-    private IEnumerable<Chore> subtasks =>
+    private IEnumerable<Chore> Subtasks =>
         Chore?.Id != null
-            ? AllChores.Where(c => c.ParentChoreId == Chore.Id)
+            ? Chore.Children
             : [];
 
     private IEnumerable<Chore> availableParents
@@ -279,7 +283,7 @@
     {
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
-        editDuration = Chore?.Duration;
+        editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
 
         intensities = Chore?.ChoreDomains
