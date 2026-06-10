@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -62,28 +61,27 @@ public class Chore
 
     public Chore GetRootOfThis()
     {
-        if (ParentChoreId == null)
-        { return this; }
-
-        if (ParentChore == null)
-        {
-            throw new ArgumentException("chores ne contient pas le parent");
-        }
-
+        if (ParentChoreId == null) return this;
+        if (ParentChore == null) throw new ArgumentException("chores ne contient pas le parent");
         return ParentChore.GetRootOfThis();
     }
 
+    public int CountAllDescendants() =>
+        Children.Sum(c => 1 + c.CountAllDescendants());
+
+    public int CountAllDoneDescendants() =>
+        Children.Sum(c => (c.IsDone ? 1 : 0) + c.CountAllDoneDescendants());
+
     /// <summary>
-    /// 
+    /// Score ajouté au domaine quand CETTE tâche est complétée.
+    /// Sous-tâche : rootScore / totalDescendants. Racine sans enfants : score brut.
     /// </summary>
-    /// <param name="domain"></param>
-    /// <returns>Le score que donne cette tâche au domaine</returns>
     public int GetScoreForDomain(Domain domain)
     {
-        ChoreDomain? cd = GetRootOfThis().ChoreDomains.FirstOrDefault(c => c.IsMadeOf(this, domain));
-        if (cd == null)
-            return 0;
-
-        return cd.LinkIntensity;
+        var root = GetRootOfThis();
+        ChoreDomain? cd = root.ChoreDomains.FirstOrDefault(c => c.DomainId == domain.Id!.Value);
+        if (cd == null) return 0;
+        if (!IsSubtask) return cd.LinkIntensity;
+        return cd.LinkIntensity / root.CountAllDescendants();
     }
 }

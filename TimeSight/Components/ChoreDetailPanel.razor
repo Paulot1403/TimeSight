@@ -335,7 +335,7 @@
         _isBusy = true;
         try
         {
-            await choreService.SetParent(Chore, parent);
+            await choreService.SetParent(Chore, parent, AllDomains);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
@@ -346,7 +346,7 @@
         _isBusy = true;
         try
         {
-            await choreService.RemoveParent(child);
+            await choreService.RemoveParent(child, AllDomains);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
@@ -358,7 +358,7 @@
         _isBusy = true;
         try
         {
-            await choreService.RemoveParent(Chore);
+            await choreService.RemoveParent(Chore, AllDomains);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
