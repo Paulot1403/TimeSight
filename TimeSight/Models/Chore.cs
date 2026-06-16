@@ -46,6 +46,16 @@ public class Chore
 
     public int? RecurrenceIntervalDays { get; set; }
 
+    /// <summary>
+    /// Minutes depuis minuit (heure locale). Ex: 480 = 8h00.
+    /// </summary>
+    public int? RecurrenceResetTime { get; set; }
+
+    /// <summary>
+    /// Bitmask : Lun=1, Mar=2, Mer=4, Jeu=8, Ven=16, Sam=32, Dim=64. null = tous les jours.
+    /// </summary>
+    public int? RecurrenceDaysOfWeek { get; set; }
+
     public Chore? ParentChore
     {
         get; set

@@ -38,10 +38,7 @@ public class ChoreService(
     public async Task ResetExpiredRecurringChoresAsync(ICollection<Chore> chores, ICollection<Domain> domains)
     {
         var expired = chores
-            .Where(c => c.RecurrenceIntervalDays.HasValue
-                        && c.IsDone
-                        && c.DoneAt.HasValue
-                        && (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value)
+            .Where(c => c.IsDone && c.DoneAt.HasValue && IsExpired(c))
             .ToList();
 
         var allToReset = new HashSet<Chore>(expired);
@@ -52,6 +49,53 @@ public class ChoreService(
 
         await Task.WhenAll(allToReset.Select(c => SetDoneState(c, domains, false, false)));
     }
+
+    private static bool IsExpired(Chore c)
+    {
+        if (!c.IsDone || !c.DoneAt.HasValue) return false;
+
+        if (c.RecurrenceResetTime.HasValue)
+        {
+            var next = NextOccurrenceAfter(c.DoneAt.Value.ToLocalTime(), c.RecurrenceResetTime.Value, c.RecurrenceDaysOfWeek);
+            return next <= DateTime.Now;
+        }
+
+        if (c.RecurrenceIntervalDays.HasValue)
+            return (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value;
+
+        return false;
+    }
+
+    private static DateTime NextOccurrenceAfter(DateTime after, int resetTimeMinutes, int? daysOfWeekMask)
+    {
+        var candidate = after.Date.AddMinutes(resetTimeMinutes);
+        if (candidate <= after)
+            candidate = candidate.AddDays(1);
+
+        if (daysOfWeekMask.HasValue)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                if ((daysOfWeekMask.Value & DayOfWeekToBit(candidate.DayOfWeek)) != 0)
+                    break;
+                candidate = candidate.AddDays(1);
+            }
+        }
+
+        return candidate;
+    }
+
+    private static int DayOfWeekToBit(DayOfWeek dow) => dow switch
+    {
+        DayOfWeek.Monday => 1,
+        DayOfWeek.Tuesday => 2,
+        DayOfWeek.Wednesday => 4,
+        DayOfWeek.Thursday => 8,
+        DayOfWeek.Friday => 16,
+        DayOfWeek.Saturday => 32,
+        DayOfWeek.Sunday => 64,
+        _ => 0
+    };
 
     private static IEnumerable<Chore> GetAllDescendants(Chore chore)
     {

@@ -23,6 +23,8 @@ public static class SupabaseChoreExtensions
             ParentChoreId = supabaseChore.ParentChoreId,
             DoneAt = supabaseChore.DoneAt,
             RecurrenceIntervalDays = supabaseChore.RecurrenceIntervalDays,
+            RecurrenceResetTime = supabaseChore.RecurrenceResetTime,
+            RecurrenceDaysOfWeek = supabaseChore.RecurrenceDaysOfWeek,
             ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };
     }

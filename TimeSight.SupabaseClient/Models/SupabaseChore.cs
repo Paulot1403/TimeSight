@@ -45,6 +45,12 @@ public class SupabaseChore : BaseModel
     [Column("recurrence_interval_days")]
     public int? RecurrenceIntervalDays { get; set; }
 
+    [Column("recurrence_days_of_week")]
+    public int? RecurrenceDaysOfWeek { get; set; }
+
+    [Column("recurrence_reset_time")]
+    public int? RecurrenceResetTime { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
 

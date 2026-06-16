@@ -200,6 +200,33 @@
                     </select>
                 </div>
 
+                <div class="mb-4">
+                    <label class="form-label">Reset at fixed time</label>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <input type="time" class="form-control" style="width:auto"
+                               value="@editResetTime"
+                               @onchange="e => editResetTime = e.Value?.ToString() is { Length: > 0 } v ? v : null" />
+                        @if (editResetTime != null)
+                        {
+                            <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="ClearResetSchedule">Clear</button>
+                        }
+                    </div>
+                    @if (editResetTime != null)
+                    {
+                        <div class="d-flex gap-3 flex-wrap mt-1">
+                            @foreach (var (label, bit) in DaysOfWeekOptions)
+                            {
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" id="dow-@bit"
+                                           checked="@((editDaysOfWeek & bit) != 0)"
+                                           @onchange="e => ToggleDay(bit, (bool)e.Value!)" />
+                                    <label class="form-check-label small" for="dow-@bit">@label</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
             </div>
 
             <div class="chore-panel-footer">
@@ -242,6 +269,24 @@
         get => editRecurrenceIntervalDays?.ToString() ?? "0";
         set => editRecurrenceIntervalDays = value == "0" ? null : int.Parse(value);
     }
+    private string? editResetTime;
+    private int editDaysOfWeek = 127;
+
+    private static readonly (string label, int bit)[] DaysOfWeekOptions =
+        [("Mon", 1), ("Tue", 2), ("Wed", 4), ("Thu", 8), ("Fri", 16), ("Sat", 32), ("Sun", 64)];
+
+    private void ToggleDay(int bit, bool value)
+    {
+        if (value) editDaysOfWeek |= bit;
+        else editDaysOfWeek &= ~bit;
+    }
+
+    private void ClearResetSchedule()
+    {
+        editResetTime = null;
+        editDaysOfWeek = 127;
+    }
+
     private Dictionary<Guid, int> intensities = [];
 
 
@@ -285,6 +330,10 @@
         editDescription = Chore?.Description;
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
+        editDaysOfWeek = Chore?.RecurrenceDaysOfWeek ?? 127;
+        editResetTime = Chore?.RecurrenceResetTime is { } t
+            ? $"{t / 60:D2}:{t % 60:D2}"
+            : null;
 
         intensities = Chore?.ChoreDomains
             .ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity) ?? [];
@@ -389,6 +438,20 @@
             if (editRecurrenceIntervalDays != Chore!.RecurrenceIntervalDays)
             {
                 Chore.RecurrenceIntervalDays = editRecurrenceIntervalDays;
+                choreChanged = true;
+            }
+            int? newResetTime = null;
+            int? newDaysOfWeek = null;
+            if (editResetTime is not null)
+            {
+                var parts = editResetTime.Split(':');
+                newResetTime = int.Parse(parts[0]) * 60 + int.Parse(parts[1]);
+                newDaysOfWeek = editDaysOfWeek == 127 ? null : editDaysOfWeek;
+            }
+            if (newResetTime != Chore!.RecurrenceResetTime || newDaysOfWeek != Chore.RecurrenceDaysOfWeek)
+            {
+                Chore.RecurrenceResetTime = newResetTime;
+                Chore.RecurrenceDaysOfWeek = newDaysOfWeek;
                 choreChanged = true;
             }
             if (choreChanged)
