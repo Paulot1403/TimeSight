@@ -44,7 +44,23 @@ public class ChoreService(
                         && (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value)
             .ToList();
 
-        await Task.WhenAll(expired.Select(c => SetDoneState(c, domains, false, false)));
+        var allToReset = new HashSet<Chore>(expired);
+        foreach (var chore in expired)
+            foreach (var desc in GetAllDescendants(chore))
+                if (desc.IsDone)
+                    allToReset.Add(desc);
+
+        await Task.WhenAll(allToReset.Select(c => SetDoneState(c, domains, false, false)));
+    }
+
+    private static IEnumerable<Chore> GetAllDescendants(Chore chore)
+    {
+        foreach (var child in chore.Children)
+        {
+            yield return child;
+            foreach (var descendant in GetAllDescendants(child))
+                yield return descendant;
+        }
     }
 
     public async Task SetDoneState(
