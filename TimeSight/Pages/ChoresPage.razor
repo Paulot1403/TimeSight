@@ -210,6 +210,11 @@ else
             var wsId = workspaceState.CurrentWorkspace?.Id
                 ?? throw new InvalidOperationException("No workspace selected");
             Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
+            if (selectedDomainIds.Count > 0)
+            {
+                var selectedDomains = domains.Where(d => d.Id.HasValue && selectedDomainIds.Contains(d.Id.Value));
+                await Task.WhenAll(selectedDomains.Select(d => choreDomainService.AddLink(chore, d)));
+            }
             _newlyAddedChoreId = chore.Id;
             choresDic.Add(chore.Id, chore);
             RebuildOrderedChores();

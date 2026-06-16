@@ -75,9 +75,10 @@
                         <div class="domain-intensity-control">
                             <div class="d-flex align-items-center gap-2">
                                 <input type="range" class="panel-range flex-grow-1" min="1"
-                                       max="@ChoreDomain.MAXIMUM_LINK_INTENSITY" value="@GetIntensity(domain)"
+                                       max="@Math.Max(ChoreDomain.MAXIMUM_LINK_INTENSITY, GetIntensity(domain))" value="@GetIntensity(domain)"
                                        @oninput="e => SetIntensity(domain, e)" />
-                                <span class="panel-metric-val">@GetIntensity(domain)</span>
+                                <input type="number" class="panel-intensity-number" min="1" value="@GetIntensity(domain)"
+                                       @oninput="e => SetIntensityFromNumber(domain, e)" />
                             </div>
                             <div class="panel-range-labels">
                                 <span>Negligible</span>
@@ -381,6 +382,12 @@
 
     private void SetIntensity(Domain domain, ChangeEventArgs e) =>
         intensities[domain.Id!.Value] = int.Parse(e.Value!.ToString()!);
+
+    private void SetIntensityFromNumber(Domain domain, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var v) && v >= 1)
+            intensities[domain.Id!.Value] = v;
+    }
 
     private async Task AddDomain(Domain domain)
     {

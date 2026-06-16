@@ -1144,6 +1144,35 @@ table.quickgrid {
     margin-top: 0;
 }
 
+.panel-intensity-number {
+    width: 3.5rem;
+    background: var(--surface-2, #1e2130);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent-soft);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0.15rem 0.25rem;
+    flex-shrink: 0;
+}
+
+.panel-intensity-number:focus {
+    outline: none;
+    border-color: var(--bs-primary, #6366f1);
+}
+
+/* hide spin buttons */
+.panel-intensity-number::-webkit-outer-spin-button,
+.panel-intensity-number::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.panel-intensity-number[type=number] {
+    -moz-appearance: textfield;
+}
+
 /* ─── DOMAINS TABLE ──────────────────────────────────────── */
 .domains-wrap table {
     table-layout: fixed;
