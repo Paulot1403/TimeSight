@@ -189,30 +189,44 @@
                 </div>
                 <div class="mb-4">
                     <label class="form-label">Recurrence</label>
-                    <select class="form-control" @bind="editRecurrenceStr">
-                        <option value="0">No recurrence</option>
-                        <option value="1">Every day</option>
-                        <option value="3">Every 3 days</option>
-                        <option value="7">Every week</option>
-                        <option value="14">Every 2 weeks</option>
-                        <option value="30">Every month</option>
-                        <option value="60">Every 2 months</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Reset at fixed time</label>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <input type="time" class="form-control" style="width:auto"
-                               value="@editResetTime"
-                               @onchange="e => editResetTime = e.Value?.ToString() is { Length: > 0 } v ? v : null" />
-                        @if (editResetTime != null)
-                        {
-                            <button class="btn btn-sm btn-outline-secondary" type="button" @onclick="ClearResetSchedule">Clear</button>
-                        }
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="recurrenceMode" id="recNone"
+                                   checked="@(editRecurrenceMode == "none")"
+                                   @onclick='() => SetRecurrenceMode("none")' />
+                            <label class="form-check-label" for="recNone">None</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="recurrenceMode" id="recInterval"
+                                   checked="@(editRecurrenceMode == "interval")"
+                                   @onclick='() => SetRecurrenceMode("interval")' />
+                            <label class="form-check-label" for="recInterval">After interval</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="recurrenceMode" id="recSchedule"
+                                   checked="@(editRecurrenceMode == "schedule")"
+                                   @onclick='() => SetRecurrenceMode("schedule")' />
+                            <label class="form-check-label" for="recSchedule">Fixed schedule</label>
+                        </div>
                     </div>
-                    @if (editResetTime != null)
+                    @if (editRecurrenceMode == "interval")
                     {
+                        <select class="form-control" @bind="editRecurrenceStr">
+                            <option value="1">Every day</option>
+                            <option value="3">Every 3 days</option>
+                            <option value="7">Every week</option>
+                            <option value="14">Every 2 weeks</option>
+                            <option value="30">Every month</option>
+                            <option value="60">Every 2 months</option>
+                        </select>
+                    }
+                    @if (editRecurrenceMode == "schedule")
+                    {
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <input type="time" class="form-control" style="width:auto"
+                                   value="@editResetTime"
+                                   @onchange="e => editResetTime = e.Value?.ToString() is { Length: > 0 } v ? v : null" />
+                        </div>
                         <div class="d-flex gap-3 flex-wrap mt-1">
                             @foreach (var (label, bit) in DaysOfWeekOptions)
                             {
@@ -269,22 +283,31 @@
         get => editRecurrenceIntervalDays?.ToString() ?? "0";
         set => editRecurrenceIntervalDays = value == "0" ? null : int.Parse(value);
     }
+    private string editRecurrenceMode = "none";
     private string? editResetTime;
     private int editDaysOfWeek = 127;
 
     private static readonly (string label, int bit)[] DaysOfWeekOptions =
         [("Mon", 1), ("Tue", 2), ("Wed", 4), ("Thu", 8), ("Fri", 16), ("Sat", 32), ("Sun", 64)];
 
+    private void SetRecurrenceMode(string mode)
+    {
+        editRecurrenceMode = mode;
+        if (mode != "interval")
+            editRecurrenceIntervalDays = null;
+        if (mode != "schedule")
+        {
+            editResetTime = null;
+            editDaysOfWeek = 127;
+        }
+        if (mode == "interval" && editRecurrenceIntervalDays == null)
+            editRecurrenceIntervalDays = 1;
+    }
+
     private void ToggleDay(int bit, bool value)
     {
         if (value) editDaysOfWeek |= bit;
         else editDaysOfWeek &= ~bit;
-    }
-
-    private void ClearResetSchedule()
-    {
-        editResetTime = null;
-        editDaysOfWeek = 127;
     }
 
     private Dictionary<Guid, int> intensities = [];
@@ -334,6 +357,9 @@
         editResetTime = Chore?.RecurrenceResetTime is { } t
             ? $"{t / 60:D2}:{t % 60:D2}"
             : null;
+        editRecurrenceMode = Chore?.RecurrenceResetTime.HasValue == true ? "schedule"
+            : Chore?.RecurrenceIntervalDays.HasValue == true ? "interval"
+            : "none";
 
         intensities = Chore?.ChoreDomains
             .ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity) ?? [];
