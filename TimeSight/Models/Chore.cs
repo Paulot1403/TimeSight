@@ -8,6 +8,8 @@ namespace TimeSight.Models;
 public class Chore
 {
     public const int MAX_DURATION = 4;
+    public const int MAX_EMERGENCY = 5;
+    public const int DAYS_BEFORE_EMERGENCY_START = 30;
 
     public static string DurationLabel(int? duration) => duration switch
     {
@@ -64,8 +66,8 @@ public class Chore
         {
             if (Deadline is null) return 0;
             int daysUntil = Deadline.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-            if (daysUntil > 30) return 0;
-            return Math.Max(0, 30 - daysUntil);
+            if (daysUntil > DAYS_BEFORE_EMERGENCY_START) return 0;
+            return Math.Max(0, MAX_EMERGENCY * (DAYS_BEFORE_EMERGENCY_START - daysUntil) / DAYS_BEFORE_EMERGENCY_START);
         }
     }
 

@@ -46,7 +46,6 @@ public class OrderChoresService
         while (prioritiesForDomains.Count != 0 && domainsScore.Count != 0)
         {
             DomainPriorityComputation prioritizedDomain = domainsScore.MaxBy(d => d.Priority)!;
-            // TODO  : manage case when no chores is done with this domain and add one to say that this domain needs tasks
 
             ICollection<ChorePriorityForDomain> prioritizedChoresForThisDomain = [.. prioritiesForDomains
                 .Where(s => s.DomainId == prioritizedDomain.DomainId)];
@@ -74,10 +73,18 @@ public class OrderChoresService
         return sortedChores;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="chore"></param>
+    /// <param name="domain"></param>
+    /// <param name="doneScore">score que rapporte chore</param>
+    /// <returns>La priorité de la tâche. Plus la valeur est elevé plus tâche n'est pas prioritaire</returns>
     private static int GetPriorityScore(Chore chore, Domain domain, int doneScore)
     {
-        int durationScore = chore.Duration.HasValue ? Chore.MAX_DURATION - chore.Duration.Value : 0;
-        return doneScore + durationScore;
+        int durationScore = chore.Duration.HasValue ? chore.Duration.Value : 0;
+        int emergency = chore.Emergency;
+        return doneScore - durationScore + emergency;
     }
 
 }
