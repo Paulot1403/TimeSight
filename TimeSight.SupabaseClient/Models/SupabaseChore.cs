@@ -51,6 +51,9 @@ public class SupabaseChore : BaseModel
     [Column("recurrence_reset_time")]
     public int? RecurrenceResetTime { get; set; }
 
+    [Column("deadline")]
+    public DateOnly? Deadline { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
 

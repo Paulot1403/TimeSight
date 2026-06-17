@@ -56,6 +56,19 @@ public class Chore
     /// </summary>
     public int? RecurrenceDaysOfWeek { get; set; }
 
+    public DateOnly? Deadline { get; set; }
+
+    public int Emergency
+    {
+        get
+        {
+            if (Deadline is null) return 0;
+            int daysUntil = Deadline.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+            if (daysUntil > 30) return 0;
+            return Math.Max(0, 30 - daysUntil);
+        }
+    }
+
     public Chore? ParentChore
     {
         get; set

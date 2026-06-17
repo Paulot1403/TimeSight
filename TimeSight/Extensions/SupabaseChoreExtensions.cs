@@ -25,6 +25,7 @@ public static class SupabaseChoreExtensions
             RecurrenceIntervalDays = supabaseChore.RecurrenceIntervalDays,
             RecurrenceResetTime = supabaseChore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = supabaseChore.RecurrenceDaysOfWeek,
+            Deadline = supabaseChore.Deadline,
             ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };
     }

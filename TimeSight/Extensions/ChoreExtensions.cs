@@ -23,6 +23,7 @@ public static class ChoreExtensions
             ParentChoreId = chore.ParentChoreId,
             DoneAt = chore.DoneAt,
             RecurrenceIntervalDays = chore.RecurrenceIntervalDays,
+            Deadline = chore.Deadline,
             SupabaseChoreDomains = chore.ChoreDomains.Select(cd => cd.ToSupabaseChoreDomain()).ToList()
         };
     }

@@ -52,6 +52,25 @@
                 }
             </div>
         }
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Deadline</label>
+                @if (editDeadline is not null)
+                {
+                    <button class="panel-subtask-remove ms-auto" title="Remove deadline" @onclick="() => editDeadline = null">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                }
+            </div>
+            <input type="date" class="form-control panel-date-input"
+                   value="@editDeadline"
+                   @oninput="e => editDeadline = e.Value?.ToString() is { Length: > 0 } s ? s : null" />
+        </div>
+
         @if (!Chore.IsSubtask)
         {
             <div class="mb-4">
@@ -278,6 +297,7 @@
     private string? editDescription;
     private bool descriptionPreview = false;
     private int? editDuration;
+    private string? editDeadline;
     private int? editRecurrenceIntervalDays;
     private string editRecurrenceStr
     {
@@ -353,6 +373,7 @@
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
+        editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
         editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
         editDaysOfWeek = Chore?.RecurrenceDaysOfWeek ?? 127;
         editResetTime = Chore?.RecurrenceResetTime is { } t
@@ -485,6 +506,12 @@
             {
                 Chore.RecurrenceResetTime = newResetTime;
                 Chore.RecurrenceDaysOfWeek = newDaysOfWeek;
+                choreChanged = true;
+            }
+            DateOnly? newDeadline = editDeadline is not null ? DateOnly.Parse(editDeadline) : null;
+            if (newDeadline != Chore!.Deadline)
+            {
+                Chore.Deadline = newDeadline;
                 choreChanged = true;
             }
             if (choreChanged)
