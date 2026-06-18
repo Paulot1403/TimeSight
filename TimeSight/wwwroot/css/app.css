@@ -445,7 +445,7 @@ label,
     opacity: 1;
 }
 
-.chore-card.chore-done {
+.chore-card.chore-done .chore-inner {
     opacity: 0.45;
 }
 

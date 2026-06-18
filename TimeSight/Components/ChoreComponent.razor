@@ -81,12 +81,12 @@ else
 
             </div>
 
-            @if (showPanel)
-            {
-                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains" OnClose="ClosePanel"
-                                  AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
-            }
-        </li>
+        @if (showPanel)
+        {
+            <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains" OnClose="ClosePanel"
+                              AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
+        }
+    </li>
     }
 
 
