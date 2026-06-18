@@ -1,6 +1,6 @@
 {
-  "name": "BlazorApp1",
-  "short_name": "BlazorApp1",
+  "name": "TimeSight",
+  "short_name": "TimeSight",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
