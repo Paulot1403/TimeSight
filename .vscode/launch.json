@@ -1,4 +1,13 @@
 {
     "version": "0.2.0",
-    "configurations": []
+    "configurations": [
+        {
+            "type": "blazorwasm",
+            "request": "launch",
+            "name": "Launch and Debug TimeSight",
+            "cwd": "${workspaceFolder}/TimeSight",
+            "url": "https://localhost:7141",
+            "preLaunchTask": "build"
+        }
+    ]
 }

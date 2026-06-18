@@ -9,11 +9,17 @@
     <link rel="preload" id="webassembly" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link href="manifest.webmanifest" rel="manifest" />
+
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="TimeSight.styles.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <script type="importmap"></script>
 </head>
 
@@ -34,6 +40,8 @@
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/helpers.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script>
+
 </body>
 
 </html>
