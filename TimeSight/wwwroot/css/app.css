@@ -1204,6 +1204,11 @@ table.quickgrid {
     white-space: nowrap;
 }
 
+.domains-wrap .domain-col-importance,
+.domains-wrap .domain-col-donescore {
+    width: 90px;
+}
+
 .domain-description-panel {
     background: var(--bs-card-bg);
 }
@@ -1305,6 +1310,32 @@ table.quickgrid {
 
     .chore-panel {
         width: calc(100vw - 2rem);
+    }
+
+    .domains-wrap .domain-col-importance,
+    .domains-wrap .domain-col-donescore {
+        display: none;
+    }
+
+    .domains-wrap .domain-col-edit,
+    .domains-wrap .domain-col-delete {
+        width: 1px;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .domains-wrap .domain-col-edit .btn,
+    .domains-wrap .domain-col-delete .btn {
+        padding-left: 0.45rem;
+        padding-right: 0.45rem;
+    }
+
+    .domains-wrap .btn-label {
+        display: none;
+    }
+
+    .domains-wrap .border.rounded {
+        overflow-x: auto;
     }
 }
 .importance-labels { font-size: 0.75rem; color: var(--bs-secondary-color); }
