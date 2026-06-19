@@ -50,6 +50,11 @@ public class ChoreService(
         await Task.WhenAll(allToReset.Select(c => SetDoneState(c, domains, false, false)));
     }
 
+    /// <summary>
+    /// "After interval" recurrences are reset 5% earlier than the displayed duration.
+    /// </summary>
+    private const double AfterIntervalEffectiveFactor = 0.95;
+
     private static bool IsExpired(Chore c)
     {
         if (!c.IsDone || !c.DoneAt.HasValue) return false;
@@ -61,7 +66,7 @@ public class ChoreService(
         }
 
         if (c.RecurrenceIntervalDays.HasValue)
-            return (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value;
+            return (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value * AfterIntervalEffectiveFactor;
 
         return false;
     }
