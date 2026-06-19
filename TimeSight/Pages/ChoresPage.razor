@@ -104,7 +104,7 @@ else
             {
                 <ChoreComponent @key="chore.Id" Chore="chore" OnDelete="HandleDelete" allDomains="domains"
                                 OnIsDoneChanged="StateHasChanged" StartEditing="chore.Id == _newlyAddedChoreId" AllChores="choresDic.Values"
-                                Depth="depth" OnHierarchyChanged="RebuildOrderedChores">
+                                Depth="depth" OnHierarchyChanged="RebuildOrderedChores" OnCreateSubtask="HandleCreateSubtask">
                 </ChoreComponent>
             }
         </ul>
@@ -223,6 +223,17 @@ else
         {
             _isAdding = false;
         }
+    }
+
+    private async Task HandleCreateSubtask(Chore parent)
+    {
+        var wsId = workspaceState.CurrentWorkspace?.Id
+            ?? throw new InvalidOperationException("No workspace selected");
+        Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
+        await choreService.SetParent(chore, parent, domains);
+        _newlyAddedChoreId = chore.Id;
+        choresDic.Add(chore.Id, chore);
+        RebuildOrderedChores();
     }
 
     private void ToggleShowDone()
