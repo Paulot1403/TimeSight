@@ -556,6 +556,22 @@ label,
     color: var(--accent);
 }
 
+.chore-deadline-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent-dim);
+    color: var(--accent-soft);
+    white-space: nowrap;
+}
+
+.chore-deadline-badge.chore-deadline-urgent {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
 .chore-name-input {
     font-size: 0.975rem;
     font-weight: 500;
