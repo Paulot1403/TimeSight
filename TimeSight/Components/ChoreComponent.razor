@@ -80,10 +80,19 @@ else
                     </div>
                 </div>
 
-                @if (Chore.Children.Count == 0)
-                {
-                    <DeleteButton OnDelete="InvokeOnDeleteAsync" />
-                }
+                <div class="chore-actions" @onclick:stopPropagation>
+                    <button class="btn-add-subtask" type="button" title="Add subtask" @onclick="InvokeOnCreateSubtaskAsync">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </button>
+                    @if (Chore.Children.Count == 0)
+                    {
+                        <DeleteButton OnDelete="InvokeOnDeleteAsync" />
+                    }
+                </div>
 
             </div>
 
@@ -113,6 +122,9 @@ else
     public int Depth { get; set; } = 0;
     [Parameter]
     public EventCallback<Chore> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Chore> OnCreateSubtask { get; set; }
 
     [Parameter]
     public EventCallback OnIsDoneChanged { get; set; }
@@ -245,6 +257,12 @@ else
     {
         ArgumentNullException.ThrowIfNull(Chore?.Id);
         await OnDelete.InvokeAsync(Chore);
+    }
+
+    private async Task InvokeOnCreateSubtaskAsync()
+    {
+        ArgumentNullException.ThrowIfNull(Chore?.Id);
+        await OnCreateSubtask.InvokeAsync(Chore);
     }
 
     private async Task SetParent(Chore parent)

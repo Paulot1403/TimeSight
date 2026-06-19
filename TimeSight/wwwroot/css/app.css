@@ -654,6 +654,34 @@ label,
     color: var(--red);
 }
 
+.chore-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-add-subtask {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--t-fast) var(--ease);
+    padding: 0;
+}
+
+.btn-add-subtask:hover {
+    background: var(--accent-dim);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: var(--accent-soft);
+}
+
 .chore-skeleton {
     background: var(--bg-card);
     border: 1px solid var(--border);
