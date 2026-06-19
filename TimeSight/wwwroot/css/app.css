@@ -364,9 +364,11 @@ label,
     font-family: var(--font-ui);
 }
 
-.filter-pill:hover {
-    border-color: var(--pill-color);
-    color: var(--pill-color);
+@media (hover: hover) and (pointer: fine) {
+    .filter-pill:hover {
+        border-color: var(--pill-color);
+        color: var(--pill-color);
+    }
 }
 
 .filter-pill.active {
