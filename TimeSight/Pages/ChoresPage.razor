@@ -64,6 +64,12 @@ else
 
         <div class="filter-bar">
             <div class="filter-row">
+                <input type="search" class="form-control form-control-sm" style="max-width: 220px;"
+                       placeholder="Search tasks…" value="@searchQuery"
+                       @oninput="(ChangeEventArgs e) => OnSearchChanged(e.Value?.ToString() ?? string.Empty)" />
+            </div>
+
+            <div class="filter-row">
                 <button class="filter-pill @(showDone ? "active" : "")" @onclick="ToggleShowDone">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -125,10 +131,11 @@ else
     private bool showDone = false;
     private bool subtasksOnly = false;
     private HashSet<Guid> selectedDomainIds = [];
+    private string searchQuery = "";
 
     private bool _isAdding;
     private bool _isSorting;
-    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0;
+    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0 || !string.IsNullOrWhiteSpace(searchQuery);
 
     private List<(Chore chore, int depth)> orderedChores = [];
 
@@ -164,6 +171,7 @@ else
         _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         selectedDomainIds.Clear();
+        searchQuery = "";
         RebuildOrderedChores();
     }
 
@@ -266,10 +274,20 @@ else
         showDone = false;
         subtasksOnly = false;
         selectedDomainIds.Clear();
+        searchQuery = "";
         _newlyAddedChoreId = null;
         _sortedChoreIds = null;
         RebuildOrderedChores();
     }
+
+    private void OnSearchChanged(string value)
+    {
+        searchQuery = value;
+        _newlyAddedChoreId = null;
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
+    }
+
     private IDictionary<Guid, Chore> GetFilteredChoresDic()
     {
 
@@ -281,6 +299,8 @@ else
         if (subtasksOnly)
             result = result
             .Where(c => c.Value.Children.Count == 0);
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+            result = result.Where(c => c.Value.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
         return result.ToDictionary();
     }
     private IDictionary<Guid, Chore> GetRoots()
