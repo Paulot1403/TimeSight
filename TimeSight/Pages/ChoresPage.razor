@@ -11,7 +11,6 @@
 @inject ChoreService choreService;
 @inject ChoreDomainService choreDomainService;
 @inject WorkspaceState workspaceState;
-@inject UrgencyThresholdService urgencyThresholdService;
 
 <PageTitle>Tasks — TimeSight</PageTitle>
 
@@ -29,16 +28,6 @@ else
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label mb-0 small text-muted" for="urgency-threshold">Urgent within</label>
-                    <select id="urgency-threshold" class="form-select form-select-sm" style="width:auto"
-                            value="@UrgencyThresholdDays" @onchange="e => UrgencyThresholdDays = int.Parse(e.Value!.ToString()!)">
-                        @foreach (var days in Chore.EmergencyThresholdOptionsDays)
-                        {
-                            <option value="@days">@UrgencyThresholdLabel(days)</option>
-                        }
-                    </select>
-                </div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order" disabled="@_isSorting">
                     @if (_isSorting)
                     {
@@ -149,26 +138,6 @@ else
     private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0 || !string.IsNullOrWhiteSpace(searchQuery);
 
     private List<(Chore chore, int depth)> orderedChores = [];
-
-    private int UrgencyThresholdDays
-    {
-        get => Chore.DaysBeforeEmergencyStart;
-        set
-        {
-            urgencyThresholdService.SetThresholdDays(value);
-            RebuildOrderedChores();
-        }
-    }
-
-    private static string UrgencyThresholdLabel(int days) => days switch
-    {
-        7 => "1 week",
-        14 => "2 weeks",
-        30 => "1 month",
-        60 => "2 months",
-        90 => "3 months",
-        _ => $"{days} days"
-    };
 
     protected override async Task OnParametersSetAsync()
     {

@@ -26,6 +26,7 @@ public static class ChoreExtensions
             RecurrenceResetTime = chore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = chore.RecurrenceDaysOfWeek,
             Deadline = chore.Deadline,
+            EmergencyThresholdDays = chore.EmergencyThresholdDays,
             SupabaseChoreDomains = chore.ChoreDomains.Select(cd => cd.ToSupabaseChoreDomain()).ToList()
         };
     }

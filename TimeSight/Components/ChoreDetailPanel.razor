@@ -261,6 +261,20 @@
                            @oninput="e => editDeadline = e.Value?.ToString() is { Length: > 0 } s ? s : null" />
                 </div>
 
+                @if (editDeadline is not null)
+                {
+                    <div class="mb-4">
+                        <label class="form-label">Urgent within</label>
+                        <select class="form-control" value="@editEmergencyThresholdDays"
+                                @onchange="e => editEmergencyThresholdDays = int.Parse(e.Value!.ToString()!)">
+                            @foreach (var days in TimeSight.Models.Chore.EmergencyThresholdOptionsDays)
+                            {
+                                <option value="@days">@TimeSight.Models.Chore.EmergencyThresholdLabel(days)</option>
+                            }
+                        </select>
+                    </div>
+                }
+
             </div>
 
             <div class="chore-panel-footer">
@@ -298,6 +312,7 @@
     private bool descriptionPreview = false;
     private int? editDuration;
     private string? editDeadline;
+    private int editEmergencyThresholdDays;
     private int? editRecurrenceIntervalDays;
     private string editRecurrenceStr
     {
@@ -376,6 +391,7 @@
         editDescription = Chore?.Description;
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
+        editEmergencyThresholdDays = Chore?.EmergencyThresholdDays ?? TimeSight.Models.Chore.DefaultEmergencyThresholdDays;
         editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
         editDaysOfWeek = Chore?.RecurrenceDaysOfWeek ?? 127;
         editResetTime = Chore?.RecurrenceResetTime is { } t
@@ -514,6 +530,12 @@
             if (newDeadline != Chore!.Deadline)
             {
                 Chore.Deadline = newDeadline;
+                choreChanged = true;
+            }
+            int? newThreshold = newDeadline is not null ? editEmergencyThresholdDays : null;
+            if (newThreshold != Chore.EmergencyThresholdDays)
+            {
+                Chore.EmergencyThresholdDays = newThreshold;
                 choreChanged = true;
             }
             if (choreChanged)

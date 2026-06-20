@@ -54,6 +54,9 @@ public class SupabaseChore : BaseModel
     [Column("deadline")]
     public DateOnly? Deadline { get; set; }
 
+    [Column("emergency_threshold_days")]
+    public int? EmergencyThresholdDays { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
 

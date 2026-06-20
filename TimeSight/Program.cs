@@ -22,7 +22,6 @@ builder.Services.AddSingleton<OrderChoresService>();
 builder.Services.AddSingleton<ChoreDomainService>();
 builder.Services.AddSingleton<ChoreService>();
 builder.Services.AddSingleton<WorkspaceState>();
-builder.Services.AddSingleton<UrgencyThresholdService>();
 
 builder.Services.AddSupabase().Configure(options =>
 {
@@ -32,7 +31,6 @@ builder.Services.AddSupabase().Configure(options =>
 var host = builder.Build();
 
 await LoadSessionFromLocalStorage(host);
-host.Services.GetRequiredService<UrgencyThresholdService>().LoadFromLocalStorage();
 
 await host.RunAsync();
 

@@ -16,10 +16,19 @@ public class Chore
     public static readonly int[] EmergencyThresholdOptionsDays = [7, 14, 30, 60, 90];
 
     /// <summary>
-    /// Nombre de jours avant la deadline à partir duquel une tâche commence à devenir urgente.
-    /// Valeur globale, modifiable par l'utilisateur (voir <see cref="TimeSight.Services.UrgencyThresholdService"/>).
+    /// Valeur par défaut de <see cref="EmergencyThresholdDays"/> quand la tâche n'en définit pas.
     /// </summary>
-    public static int DaysBeforeEmergencyStart { get; set; } = 30;
+    public const int DefaultEmergencyThresholdDays = 30;
+
+    public static string EmergencyThresholdLabel(int days) => days switch
+    {
+        7 => "1 week",
+        14 => "2 weeks",
+        30 => "1 month",
+        60 => "2 months",
+        90 => "3 months",
+        _ => $"{days} days"
+    };
 
     public static string DurationLabel(int? duration) => duration switch
     {
@@ -70,14 +79,21 @@ public class Chore
 
     public DateOnly? Deadline { get; set; }
 
+    /// <summary>
+    /// Nombre de jours avant la deadline à partir duquel CETTE tâche commence à devenir urgente.
+    /// null = utilise <see cref="DefaultEmergencyThresholdDays"/>.
+    /// </summary>
+    public int? EmergencyThresholdDays { get; set; }
+
     public int Emergency
     {
         get
         {
             if (Deadline is null) return 0;
+            int threshold = EmergencyThresholdDays ?? DefaultEmergencyThresholdDays;
             int daysUntil = Deadline.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-            if (daysUntil > DaysBeforeEmergencyStart) return 0;
-            return Math.Max(0, MAX_EMERGENCY * (DaysBeforeEmergencyStart - daysUntil) / DaysBeforeEmergencyStart);
+            if (daysUntil > threshold) return 0;
+            return Math.Max(0, MAX_EMERGENCY * (threshold - daysUntil) / threshold);
         }
     }
 
