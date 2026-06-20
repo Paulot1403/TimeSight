@@ -213,12 +213,10 @@
                     @if (editRecurrenceMode == "interval")
                     {
                         <select class="form-control" @bind="editRecurrenceStr">
-                            <option value="1">Every day</option>
-                            <option value="3">Every 3 days</option>
-                            <option value="7">Every week</option>
-                            <option value="14">Every 2 weeks</option>
-                            <option value="30">Every month</option>
-                            <option value="60">Every 2 months</option>
+                            @foreach (var hours in TimeSight.Models.Chore.RecurrenceIntervalOptionsHours)
+                            {
+                                <option value="@hours">Every @TimeSight.Models.Chore.RecurrenceIntervalLabel(hours)</option>
+                            }
                         </select>
                     }
                     @if (editRecurrenceMode == "schedule")
@@ -313,11 +311,11 @@
     private int? editDuration;
     private string? editDeadline;
     private int editEmergencyThresholdDays;
-    private int? editRecurrenceIntervalDays;
+    private int? editRecurrenceIntervalHours;
     private string editRecurrenceStr
     {
-        get => editRecurrenceIntervalDays?.ToString() ?? "0";
-        set => editRecurrenceIntervalDays = value == "0" ? null : int.Parse(value);
+        get => editRecurrenceIntervalHours?.ToString() ?? "0";
+        set => editRecurrenceIntervalHours = value == "0" ? null : int.Parse(value);
     }
     private string editRecurrenceMode = "none";
     private string? editResetTime;
@@ -330,14 +328,14 @@
     {
         editRecurrenceMode = mode;
         if (mode != "interval")
-            editRecurrenceIntervalDays = null;
+            editRecurrenceIntervalHours = null;
         if (mode != "schedule")
         {
             editResetTime = null;
             editDaysOfWeek = 127;
         }
-        if (mode == "interval" && editRecurrenceIntervalDays == null)
-            editRecurrenceIntervalDays = 1;
+        if (mode == "interval" && editRecurrenceIntervalHours == null)
+            editRecurrenceIntervalHours = 1;
         if (mode == "schedule" && editResetTime == null)
             editResetTime = "00:00";
     }
@@ -392,13 +390,13 @@
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
         editEmergencyThresholdDays = Chore?.EmergencyThresholdDays ?? TimeSight.Models.Chore.DefaultEmergencyThresholdDays;
-        editRecurrenceIntervalDays = Chore?.RecurrenceIntervalDays;
+        editRecurrenceIntervalHours = Chore?.RecurrenceIntervalHours;
         editDaysOfWeek = Chore?.RecurrenceDaysOfWeek ?? 127;
         editResetTime = Chore?.RecurrenceResetTime is { } t
             ? $"{t / 60:D2}:{t % 60:D2}"
             : null;
         editRecurrenceMode = Chore?.RecurrenceResetTime.HasValue == true ? "schedule"
-            : Chore?.RecurrenceIntervalDays.HasValue == true ? "interval"
+            : Chore?.RecurrenceIntervalHours.HasValue == true ? "interval"
             : "none";
 
         intensities = Chore?.ChoreDomains
@@ -507,9 +505,9 @@
                 Chore.Description = editDescription;
                 choreChanged = true;
             }
-            if (editRecurrenceIntervalDays != Chore!.RecurrenceIntervalDays)
+            if (editRecurrenceIntervalHours != Chore!.RecurrenceIntervalHours)
             {
-                Chore.RecurrenceIntervalDays = editRecurrenceIntervalDays;
+                Chore.RecurrenceIntervalHours = editRecurrenceIntervalHours;
                 choreChanged = true;
             }
             int? newResetTime = null;

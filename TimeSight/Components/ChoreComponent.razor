@@ -27,7 +27,7 @@ else
             <div class="chore-body">
                 <span class="chore-name">
                     @Chore.Name
-                    @if (Chore.RecurrenceIntervalDays.HasValue || Chore.RecurrenceResetTime.HasValue)
+                    @if (Chore.RecurrenceIntervalHours.HasValue || Chore.RecurrenceResetTime.HasValue)
                     {
                         <svg class="chore-recurrence-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -152,8 +152,8 @@ else
                 }
                 return $"Resets daily at {time}";
             }
-            if (Chore?.RecurrenceIntervalDays is { } days2)
-                return $"Recurring every {days2} day{(days2 == 1 ? "" : "s")}";
+            if (Chore?.RecurrenceIntervalHours is { } hours2)
+                return $"Recurring every {TimeSight.Models.Chore.RecurrenceIntervalLabel(hours2)}";
             return string.Empty;
         }
     }

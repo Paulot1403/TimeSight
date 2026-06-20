@@ -22,7 +22,7 @@ public static class ChoreExtensions
             Description = chore.Description,
             ParentChoreId = chore.ParentChoreId,
             DoneAt = chore.DoneAt,
-            RecurrenceIntervalDays = chore.RecurrenceIntervalDays,
+            RecurrenceIntervalHours = chore.RecurrenceIntervalHours,
             RecurrenceResetTime = chore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = chore.RecurrenceDaysOfWeek,
             Deadline = chore.Deadline,

@@ -39,6 +39,24 @@ public class Chore
         4 => "2 h",
         _ => $"{duration}"
     };
+
+    /// <summary>
+    /// Choix proposés à l'utilisateur pour la récurrence "After interval", en heures.
+    /// </summary>
+    public static readonly int[] RecurrenceIntervalOptionsHours = [1, 4, 8, 12, 24, 72, 168, 336, 720, 1440];
+
+    public static string RecurrenceIntervalLabel(int hours) => hours switch
+    {
+        1 => "hour",
+        24 => "day",
+        72 => "3 days",
+        168 => "week",
+        336 => "2 weeks",
+        720 => "month",
+        1440 => "2 months",
+        _ when hours % 24 == 0 => $"{hours / 24} days",
+        _ => $"{hours} hours"
+    };
     public required Guid UserId { get; set; }
     public required Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
@@ -65,7 +83,10 @@ public class Chore
 
     public DateTime? DoneAt { get; set; }
 
-    public int? RecurrenceIntervalDays { get; set; }
+    /// <summary>
+    /// Intervalle de la récurrence "After interval", en heures (ex: 1, 4, 24, 168...).
+    /// </summary>
+    public int? RecurrenceIntervalHours { get; set; }
 
     /// <summary>
     /// Minutes depuis minuit (heure locale). Ex: 480 = 8h00.
