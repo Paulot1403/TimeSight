@@ -9,7 +9,17 @@ public class Chore
 {
     public const int MAX_DURATION = 4;
     public const int MAX_EMERGENCY = 5;
-    public const int DAYS_BEFORE_EMERGENCY_START = 30;
+
+    /// <summary>
+    /// Seuils proposés à l'utilisateur pour "dans combien de temps une tâche devient urgente".
+    /// </summary>
+    public static readonly int[] EmergencyThresholdOptionsDays = [7, 14, 30, 60, 90];
+
+    /// <summary>
+    /// Nombre de jours avant la deadline à partir duquel une tâche commence à devenir urgente.
+    /// Valeur globale, modifiable par l'utilisateur (voir <see cref="TimeSight.Services.UrgencyThresholdService"/>).
+    /// </summary>
+    public static int DaysBeforeEmergencyStart { get; set; } = 30;
 
     public static string DurationLabel(int? duration) => duration switch
     {
@@ -66,8 +76,8 @@ public class Chore
         {
             if (Deadline is null) return 0;
             int daysUntil = Deadline.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-            if (daysUntil > DAYS_BEFORE_EMERGENCY_START) return 0;
-            return Math.Max(0, MAX_EMERGENCY * (DAYS_BEFORE_EMERGENCY_START - daysUntil) / DAYS_BEFORE_EMERGENCY_START);
+            if (daysUntil > DaysBeforeEmergencyStart) return 0;
+            return Math.Max(0, MAX_EMERGENCY * (DaysBeforeEmergencyStart - daysUntil) / DaysBeforeEmergencyStart);
         }
     }
 
