@@ -42,8 +42,11 @@ public class SupabaseChore : BaseModel
     [Column("done_at")]
     public DateTime? DoneAt { get; set; }
 
+    /// <summary>
+    /// Stocké en heures malgré le nom de colonne ("recurrence_interval_days" n'a pas pu être migré).
+    /// </summary>
     [Column("recurrence_interval_days")]
-    public int? RecurrenceIntervalDays { get; set; }
+    public int? RecurrenceIntervalHours { get; set; }
 
     [Column("recurrence_days_of_week")]
     public int? RecurrenceDaysOfWeek { get; set; }

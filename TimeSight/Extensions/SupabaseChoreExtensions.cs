@@ -22,7 +22,7 @@ public static class SupabaseChoreExtensions
             Description = supabaseChore.Description,
             ParentChoreId = supabaseChore.ParentChoreId,
             DoneAt = supabaseChore.DoneAt,
-            RecurrenceIntervalDays = supabaseChore.RecurrenceIntervalDays,
+            RecurrenceIntervalHours = supabaseChore.RecurrenceIntervalHours,
             RecurrenceResetTime = supabaseChore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = supabaseChore.RecurrenceDaysOfWeek,
             Deadline = supabaseChore.Deadline,

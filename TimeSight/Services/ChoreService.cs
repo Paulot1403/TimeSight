@@ -65,8 +65,8 @@ public class ChoreService(
             return next <= DateTime.Now;
         }
 
-        if (c.RecurrenceIntervalDays.HasValue)
-            return (DateTime.UtcNow - c.DoneAt.Value).TotalDays >= c.RecurrenceIntervalDays.Value * AfterIntervalEffectiveFactor;
+        if (c.RecurrenceIntervalHours.HasValue)
+            return (DateTime.UtcNow - c.DoneAt.Value).TotalHours >= c.RecurrenceIntervalHours.Value * AfterIntervalEffectiveFactor;
 
         return false;
     }
