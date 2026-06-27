@@ -1,0 +1,175 @@
+@using TimeSight.Services
+@using TimeSight.repositories
+
+@page "/calendar"
+@attribute [Authorize]
+@implements IDisposable
+@inject ChoreService choreService
+@inject WorkspaceState workspaceState
+
+<PageTitle>Calendar — TimeSight</PageTitle>
+
+@if (workspaceState.CurrentWorkspace == null)
+{
+    <div class="text-muted mt-4">Select a workspace from the sidebar to view the calendar.</div>
+}
+else
+{
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="page-title">Calendar</h1>
+            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks</p>
+        </div>
+    </div>
+
+    <div class="calendar-nav d-flex align-items-center gap-3 mb-4">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="PrevMonth">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </button>
+        <span class="calendar-month-label">@_viewDate.ToString("MMMM yyyy")</span>
+        <button class="btn btn-outline-secondary btn-sm" @onclick="NextMonth">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+            </svg>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm ms-2" @onclick="GoToToday">Today</button>
+    </div>
+
+    <div class="calendar-legend d-flex gap-3 mb-3">
+        <span class="d-flex align-items-center gap-1 small">
+            <span class="cal-dot cal-dot-start"></span> Planned
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+            <span class="cal-dot cal-dot-deadline"></span> Deadline
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+            <span class="cal-dot cal-dot-recur"></span> Recurring
+        </span>
+    </div>
+
+    <div class="calendar-grid">
+        @foreach (var dayName in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
+        {
+            <div class="calendar-day-header">@dayName</div>
+        }
+
+        @foreach (var day in _calendarDays)
+        {
+            var isToday = day == _today;
+            var isCurrentMonth = day.Month == _viewDate.Month;
+            var entries = GetEntriesForDay(day);
+
+            <div class="calendar-cell @(isToday ? "calendar-cell-today" : "") @(!isCurrentMonth ? "calendar-cell-other-month" : "")">
+                <div class="calendar-cell-number">@day.Day</div>
+                @foreach (var entry in entries.Take(4))
+                {
+                    <div class="cal-entry cal-entry-@entry.Kind" title="@entry.Chore.Name">
+                        @entry.Chore.Name
+                    </div>
+                }
+                @if (entries.Count > 4)
+                {
+                    <div class="cal-entry-more">+@(entries.Count - 4) more</div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private IDictionary<Guid, Chore> _chores = new Dictionary<Guid, Chore>();
+    private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly _viewDate;
+    private List<DateOnly> _calendarDays = [];
+
+    private record CalendarEntry(Chore Chore, string Kind);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewDate = new DateOnly(_today.Year, _today.Month, 1);
+        workspaceState.OnChanged += OnWorkspaceChanged;
+        await LoadData();
+    }
+
+    private async void OnWorkspaceChanged()
+    {
+        await LoadData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadData()
+    {
+        if (workspaceState.CurrentWorkspace?.Id is Guid wsId)
+            _chores = await choreService.GetChoresAsync(wsId);
+        else
+            _chores = new Dictionary<Guid, Chore>();
+
+        BuildCalendarDays();
+    }
+
+    private void BuildCalendarDays()
+    {
+        var first = new DateOnly(_viewDate.Year, _viewDate.Month, 1);
+        // Start on Monday; DayOfWeek: Mon=1..Sun=0 → offset 0..6
+        int offset = ((int)first.DayOfWeek + 6) % 7;
+        var start = first.AddDays(-offset);
+
+        _calendarDays = [];
+        for (int i = 0; i < 42; i++)
+            _calendarDays.Add(start.AddDays(i));
+    }
+
+    private List<CalendarEntry> GetEntriesForDay(DateOnly day)
+    {
+        var entries = new List<CalendarEntry>();
+        foreach (var chore in _chores.Values.Where(c => !c.IsDone))
+        {
+            if (chore.StartDate == day)
+                entries.Add(new(chore, "start"));
+
+            if (chore.Deadline == day)
+                entries.Add(new(chore, "deadline"));
+
+            if (IsRecurringOnDay(chore, day))
+                entries.Add(new(chore, "recur"));
+        }
+        return entries;
+    }
+
+    private static bool IsRecurringOnDay(Chore chore, DateOnly day)
+    {
+        if (chore.RecurrenceResetTime is null) return false;
+
+        // Interval-based recurrence: show on start date if set, not on every day
+        if (chore.RecurrenceIntervalHours.HasValue) return false;
+
+        // Fixed schedule: check day-of-week bitmask (Mon=1,Tue=2,Wed=4,Thu=8,Fri=16,Sat=32,Sun=64)
+        int mask = chore.RecurrenceDaysOfWeek ?? 127;
+        int bit = ((int)day.DayOfWeek + 6) % 7; // Mon=0..Sun=6
+        return (mask & (1 << bit)) != 0;
+    }
+
+    private void PrevMonth()
+    {
+        _viewDate = _viewDate.AddMonths(-1);
+        BuildCalendarDays();
+    }
+
+    private void NextMonth()
+    {
+        _viewDate = _viewDate.AddMonths(1);
+        BuildCalendarDays();
+    }
+
+    private void GoToToday()
+    {
+        _viewDate = new DateOnly(_today.Year, _today.Month, 1);
+        BuildCalendarDays();
+    }
+
+    public void Dispose() => workspaceState.OnChanged -= OnWorkspaceChanged;
+}

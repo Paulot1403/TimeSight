@@ -111,6 +111,11 @@ public class Chore
     /// </summary>
     public int? EmergencyThresholdDays { get; set; }
 
+    /// <summary>
+    /// Date à laquelle on prévoit de commencer cette tâche.
+    /// </summary>
+    public DateOnly? StartDate { get; set; }
+
     public int Emergency
     {
         get

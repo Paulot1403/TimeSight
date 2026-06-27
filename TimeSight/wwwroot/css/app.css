@@ -1390,3 +1390,111 @@ table.quickgrid {
     }
 }
 .importance-labels { font-size: 0.75rem; color: var(--bs-secondary-color); }
+
+/* ─── CALENDAR ───────────────────────────────────────────── */
+.calendar-month-label {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 160px;
+    text-align: center;
+}
+
+.calendar-legend .cal-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.cal-dot-start    { background: var(--accent); }
+.cal-dot-deadline { background: var(--red); }
+.cal-dot-recur    { background: #a78bfa; }
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.35rem 0;
+}
+
+.calendar-cell {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    min-height: 90px;
+    padding: 0.4rem 0.45rem 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color 0.15s;
+}
+
+.calendar-cell:hover {
+    border-color: var(--border-light);
+}
+
+.calendar-cell-today {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+.calendar-cell-other-month {
+    opacity: 0.35;
+}
+
+.calendar-cell-number {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    line-height: 1;
+    margin-bottom: 3px;
+}
+
+.calendar-cell-today .calendar-cell-number {
+    color: var(--accent-soft);
+}
+
+.cal-entry {
+    font-size: 0.68rem;
+    line-height: 1.2;
+    border-radius: 3px;
+    padding: 1px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+}
+
+.cal-entry-start {
+    background: var(--accent-dim);
+    color: var(--accent-soft);
+    border-left: 2px solid var(--accent);
+}
+
+.cal-entry-deadline {
+    background: var(--red-dim);
+    color: var(--red);
+    border-left: 2px solid var(--red);
+}
+
+.cal-entry-recur {
+    background: rgba(167, 139, 250, 0.1);
+    color: #a78bfa;
+    border-left: 2px solid #a78bfa;
+}
+
+.cal-entry-more {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    padding-left: 2px;
+}

@@ -62,11 +62,10 @@ public class SupabaseChore : BaseModel
     [Column("emergency_threshold_days")]
     public int? EmergencyThresholdDays { get; set; }
 
+    [Column("start_date")]
+    public DateOnly? StartDate { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
-
-
-    // public DateTime? ScheduledStartDate { get; set; }
-    // public DateTime? ScheduledEndDate { get; set; }
 
 }
