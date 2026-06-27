@@ -26,6 +26,19 @@
 
 
 
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Importance</label>
+                <span class="panel-metric-val">@editImportance</span>
+            </div>
+            <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_IMPORTANCE"
+                   value="@editImportance" @oninput="e => editImportance = int.Parse(e.Value!.ToString()!)" />
+            <div class="panel-range-labels">
+                <span>Low</span>
+                <span>High</span>
+            </div>
+        </div>
+
         @if (!Subtasks.Any())
         {
             <div class="mb-4">
@@ -55,24 +68,19 @@
         @if (!Chore.IsSubtask)
         {
             <div class="mb-4">
-                <label class="form-label">Importance for Domains</label>
+                <label class="form-label">Domains</label>
                 @foreach (var domain in LocalDomainsSelected)
                 {
-                    <div class="domain-intensity-row">
-                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)"
-                                    disabled="@_isBusy">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            </button>
-                            <span class="domain-intensity-name" style="--tag-color:@(domain.Color ?? "#6366f1")">
-                                @domain.Name
-                            </span>
-                        </div>
-
+                    <div class="panel-subtask-row">
+                        <span class="domain-intensity-name" style="--tag-color:@(domain.Color ?? "#6366f1")">@domain.Name</span>
+                        <button class="panel-subtask-remove" title="Remove domain" @onclick="() => RemoveDomain(domain)"
+                                disabled="@_isBusy">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
                     </div>
                 }
                 @if (LocalDomainsNotSelected.Any())
@@ -291,6 +299,7 @@
     private string editName = string.Empty;
     private string? editDescription;
     private bool descriptionPreview = false;
+    private int editImportance;
     private int? editDuration;
     private string? editDeadline;
     private int editEmergencyThresholdDays;
@@ -369,6 +378,7 @@
     {
         editName = Chore?.Name ?? string.Empty;
         editDescription = Chore?.Description;
+        editImportance = Chore?.Importance ?? TimeSight.Models.Chore.DEFAULT_IMPORTANCE;
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
         editEmergencyThresholdDays = Chore?.EmergencyThresholdDays ?? TimeSight.Models.Chore.DefaultEmergencyThresholdDays;
@@ -460,6 +470,11 @@
             if (!string.IsNullOrEmpty(trimmed) && trimmed != Chore!.Name)
             {
                 Chore.Name = trimmed;
+                choreChanged = true;
+            }
+            if (editImportance != Chore!.Importance)
+            {
+                Chore.Importance = editImportance;
                 choreChanged = true;
             }
             if (editDuration != Chore!.Duration)

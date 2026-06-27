@@ -6,7 +6,7 @@ public class OrderChoresService
 {
     public List<Guid> OrderChores(IDictionary<Guid, Chore> choresDic)
     {
-        return [.. choresDic.Values.OrderBy(c => GetPriorityScore(c)).Select(c => c.Id)];
+        return [.. choresDic.Values.OrderByDescending(c => GetPriorityScore(c)).Select(c => c.Id)];
     }
 
     /// <summary>
@@ -19,7 +19,8 @@ public class OrderChoresService
     {
         int durationScore = chore.Duration.HasValue ? chore.Duration.Value : 0;
         int emergency = chore.Emergency;
-        return -durationScore + emergency;
+        int importance = chore.Importance;
+        return importance - durationScore + emergency;
     }
 
 }
