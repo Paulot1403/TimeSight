@@ -111,6 +111,16 @@ public class Chore
     /// </summary>
     public int? EmergencyThresholdDays { get; set; }
 
+    /// <summary>
+    /// Date à laquelle on prévoit de commencer cette tâche.
+    /// </summary>
+    public DateOnly? StartDate { get; set; }
+
+    /// <summary>
+    /// Heure de début prévue, en minutes depuis minuit (ex: 540 = 9h00). null = pas d'heure définie.
+    /// </summary>
+    public int? StartTime { get; set; }
+
     public int Emergency
     {
         get

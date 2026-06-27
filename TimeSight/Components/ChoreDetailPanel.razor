@@ -185,6 +185,43 @@
                     }
                 </div>
                 <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <label class="form-label mb-0">Planned date</label>
+                        @if (editStartDate is not null)
+                        {
+                            <button class="panel-subtask-remove ms-auto" title="Remove planned date"
+                                    @onclick="() => { editStartDate = null; editStartTime = null; }">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        }
+                    </div>
+                    <input type="date" class="form-control panel-date-input" value="@editStartDate"
+                           @oninput="e => editStartDate = e.Value?.ToString() is { Length: > 0 } s ? s : null" />
+                    @if (editStartDate is not null)
+                    {
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <input type="time" class="form-control" style="width:auto"
+                                   value="@editStartTime"
+                                   @onchange="e => editStartTime = e.Value?.ToString() is { Length: > 0 } v ? v : null" />
+                            @if (editStartTime is not null)
+                            {
+                                <button class="panel-subtask-remove" title="Remove time" @onclick="() => editStartTime = null">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                         stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label">Recurrence</label>
                     <div class="d-flex gap-3 mb-3">
                         <div class="form-check">
@@ -301,6 +338,8 @@
     private bool descriptionPreview = false;
     private int editImportance;
     private int? editDuration;
+    private string? editStartDate;
+    private string? editStartTime;
     private string? editDeadline;
     private int editEmergencyThresholdDays;
     private int? editRecurrenceIntervalHours;
@@ -380,6 +419,8 @@
         editDescription = Chore?.Description;
         editImportance = Chore?.Importance ?? TimeSight.Models.Chore.DEFAULT_IMPORTANCE;
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
+        editStartDate = Chore?.StartDate?.ToString("yyyy-MM-dd");
+        editStartTime = Chore?.StartTime is { } st ? $"{st / 60:D2}:{st % 60:D2}" : null;
         editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
         editEmergencyThresholdDays = Chore?.EmergencyThresholdDays ?? TimeSight.Models.Chore.DefaultEmergencyThresholdDays;
         editRecurrenceIntervalHours = Chore?.RecurrenceIntervalHours;
@@ -504,6 +545,23 @@
             {
                 Chore.RecurrenceResetTime = newResetTime;
                 Chore.RecurrenceDaysOfWeek = newDaysOfWeek;
+                choreChanged = true;
+            }
+            DateOnly? newStartDate = editStartDate is not null ? DateOnly.Parse(editStartDate) : null;
+            if (newStartDate != Chore!.StartDate)
+            {
+                Chore.StartDate = newStartDate;
+                choreChanged = true;
+            }
+            int? newStartTime = null;
+            if (editStartTime is not null && editStartDate is not null)
+            {
+                var tParts = editStartTime.Split(':');
+                newStartTime = int.Parse(tParts[0]) * 60 + int.Parse(tParts[1]);
+            }
+            if (newStartTime != Chore!.StartTime)
+            {
+                Chore.StartTime = newStartTime;
                 choreChanged = true;
             }
             DateOnly? newDeadline = editDeadline is not null ? DateOnly.Parse(editDeadline) : null;
