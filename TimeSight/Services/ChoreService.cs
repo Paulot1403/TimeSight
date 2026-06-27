@@ -121,22 +121,14 @@ public class ChoreService(
         if (changeDomainsScore)
         {
             var root = chore.GetRootOfThis();
-            int descCount = root.CountAllDescendants();
-            int oldDoneCount = root.CountAllDoneDescendants();
-            bool oldRootIsDone = root.IsDone;
 
             chore.IsDone = isDone;
             await UpdateChoreAsync(chore);
 
-            int newDoneCount = root.CountAllDoneDescendants();
-            bool newRootIsDone = root.IsDone;
-
-            var linked = GetLinkedDomains(root, allDomains);
+            List<Domain> linked = GetLinkedDomains(root, allDomains);
             foreach (var domain in linked)
             {
-                int raw = GetRawScore(root, domain);
-                domain.DoneScore += Contribution(raw, descCount, newDoneCount, newRootIsDone)
-                                  - Contribution(raw, descCount, oldDoneCount, oldRootIsDone);
+                domain.DoneScore += chore.Duration ?? Chore.MAX_DURATION / 2;
             }
             await Task.WhenAll(linked.Select(domainRepository.UpdateDomainAsync));
         }
@@ -146,28 +138,19 @@ public class ChoreService(
             await UpdateChoreAsync(chore);
         }
     }
-    public async Task SetParent(Chore chore, Chore parent, ICollection<Domain> allDomains)
+    public async Task SetParent(Chore chore, Chore parent)
     {
-        // Undo chore's own domain contribution before it loses its ChoreDomains
-        if (chore.ChoreDomains.Count > 0)
-            await UndoRootContribution(chore, allDomains);
 
         foreach (var cd in chore.ChoreDomains.ToList())
             await choreDomainRepository.DeleteChoreDomainAsync(cd.ChoreId, cd.DomainId);
         chore.ChoreDomains.Clear();
 
-        var root = parent.GetRootOfThis();
-        int oldDescCount = root.CountAllDescendants();
-        int oldDoneCount = root.CountAllDoneDescendants();
 
         chore.ParentChoreId = parent.Id;
         chore.ParentChore = parent;
         parent.Children.Add(chore);
         await choreRepository.UpdateChoreAsync(chore);
 
-        int newDescCount = root.CountAllDescendants();
-        int newDoneCount = root.CountAllDoneDescendants();
-        await AdjustRootDomainScores(root, allDomains, oldDescCount, oldDoneCount, newDescCount, newDoneCount);
 
         if (parent.Duration != null)
         {
@@ -176,70 +159,19 @@ public class ChoreService(
         }
     }
 
-    public async Task RemoveParent(Chore chore, ICollection<Domain> allDomains)
+    public async Task RemoveParent(Chore chore)
     {
         if (chore.ParentChore == null)
             throw new ArgumentException("chore doesn't have a parent");
-
-        var root = chore.GetRootOfThis();
-        int oldDescCount = root.CountAllDescendants();
-        int oldDoneCount = root.CountAllDoneDescendants();
 
         chore.ParentChoreId = null;
         chore.ParentChore.Children.Remove(chore);
         chore.ParentChore = null;
         await choreRepository.UpdateChoreAsync(chore);
-
-        int newDescCount = root.CountAllDescendants();
-        int newDoneCount = root.CountAllDoneDescendants();
-        await AdjustRootDomainScores(root, allDomains, oldDescCount, oldDoneCount, newDescCount, newDoneCount);
-    }
-
-    private async Task AdjustRootDomainScores(
-        Chore root, ICollection<Domain> allDomains,
-        int oldDescCount, int oldDoneCount,
-        int newDescCount, int newDoneCount)
-    {
-        var linked = GetLinkedDomains(root, allDomains);
-        if (linked.Count == 0) return;
-
-        foreach (var domain in linked)
-        {
-            int raw = GetRawScore(root, domain);
-            domain.DoneScore += Contribution(raw, newDescCount, newDoneCount, root.IsDone)
-                              - Contribution(raw, oldDescCount, oldDoneCount, root.IsDone);
-        }
-        await Task.WhenAll(linked.Select(domainRepository.UpdateDomainAsync));
-    }
-
-    private async Task UndoRootContribution(Chore root, ICollection<Domain> allDomains)
-    {
-        var linked = GetLinkedDomains(root, allDomains);
-        if (linked.Count == 0) return;
-
-        int descCount = root.CountAllDescendants();
-        int doneCount = root.CountAllDoneDescendants();
-
-        foreach (var domain in linked)
-        {
-            int raw = GetRawScore(root, domain);
-            domain.DoneScore -= Contribution(raw, descCount, doneCount, root.IsDone);
-        }
-        await Task.WhenAll(linked.Select(domainRepository.UpdateDomainAsync));
     }
 
     private static List<Domain> GetLinkedDomains(Chore root, ICollection<Domain> allDomains) =>
         [.. allDomains.Where(d => root.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
-
-    private static int GetRawScore(Chore root, Domain domain) =>
-        root.ChoreDomains.First(cd => cd.DomainId == domain.Id!.Value).LinkIntensity;
-
-    /// <summary>
-    /// Score total attribué au domaine pour une racine donnée.
-    /// Si la racine n'a pas de descendants, on retourne le score brut si elle est faite.
-    /// </summary>
-    private static double Contribution(int rawScore, int descCount, int doneCount, bool rootIsDone) =>
-        descCount > 0 ? (double)rawScore * doneCount / descCount : (rootIsDone ? rawScore : 0);
 
 
     public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "") =>

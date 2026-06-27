@@ -15,8 +15,7 @@ public static class ChoreDomainExtensions
         {
             UserId = choreDomain.UserId,
             ChoreId = choreDomain.ChoreId,
-            DomainId = choreDomain.DomainId,
-            LinkIntensity = choreDomain.LinkIntensity
+            DomainId = choreDomain.DomainId
         };
     }
 }

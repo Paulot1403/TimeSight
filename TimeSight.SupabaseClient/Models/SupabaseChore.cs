@@ -26,6 +26,8 @@ public class SupabaseChore : BaseModel
     [Column("is_done")]
     public bool IsDone { get; set; } = false;
 
+    [Column("importance")]
+    public int? Importance { get; set; }
     /// <summary>
     /// De 1 à 4 ?
     /// </summary>

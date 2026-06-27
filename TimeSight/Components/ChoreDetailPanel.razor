@@ -72,19 +72,7 @@
                                 @domain.Name
                             </span>
                         </div>
-                        <div class="domain-intensity-control">
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="range" class="panel-range flex-grow-1" min="1"
-                                       max="@Math.Max(ChoreDomain.MAXIMUM_LINK_INTENSITY, GetIntensity(domain))" value="@GetIntensity(domain)"
-                                       @oninput="e => SetIntensity(domain, e)" />
-                                <input type="number" class="panel-intensity-number" min="1" value="@GetIntensity(domain)"
-                                       @oninput="e => SetIntensityFromNumber(domain, e)" />
-                            </div>
-                            <div class="panel-range-labels">
-                                <span>Negligible</span>
-                                <span>Essential</span>
-                            </div>
-                        </div>
+
                     </div>
                 }
                 @if (LocalDomainsNotSelected.Any())
@@ -193,20 +181,17 @@
                     <div class="d-flex gap-3 mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="recurrenceMode" id="recNone"
-                                   checked="@(editRecurrenceMode == "none")"
-                                   @onclick='() => SetRecurrenceMode("none")' />
+                                   checked="@(editRecurrenceMode == "none")" @onclick='() => SetRecurrenceMode("none")' />
                             <label class="form-check-label" for="recNone">None</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="recurrenceMode" id="recInterval"
-                                   checked="@(editRecurrenceMode == "interval")"
-                                   @onclick='() => SetRecurrenceMode("interval")' />
+                                   checked="@(editRecurrenceMode == "interval")" @onclick='() => SetRecurrenceMode("interval")' />
                             <label class="form-check-label" for="recInterval">After interval</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="recurrenceMode" id="recSchedule"
-                                   checked="@(editRecurrenceMode == "schedule")"
-                                   @onclick='() => SetRecurrenceMode("schedule")' />
+                                   checked="@(editRecurrenceMode == "schedule")" @onclick='() => SetRecurrenceMode("schedule")' />
                             <label class="form-check-label" for="recSchedule">Fixed schedule</label>
                         </div>
                     </div>
@@ -222,8 +207,7 @@
                     @if (editRecurrenceMode == "schedule")
                     {
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <input type="time" class="form-control" style="width:auto"
-                                   value="@editResetTime"
+                            <input type="time" class="form-control" style="width:auto" value="@editResetTime"
                                    @onchange="e => editResetTime = e.Value?.ToString() is { Length: > 0 } v ? v : null" />
                         </div>
                         <div class="d-flex gap-3 flex-wrap mt-1">
@@ -231,8 +215,7 @@
                             {
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input" type="checkbox" id="dow-@bit"
-                                           checked="@((editDaysOfWeek & bit) != 0)"
-                                           @onchange="e => ToggleDay(bit, (bool)e.Value!)" />
+                                           checked="@((editDaysOfWeek & bit) != 0)" @onchange="e => ToggleDay(bit, (bool)e.Value!)" />
                                     <label class="form-check-label small" for="dow-@bit">@label</label>
                                 </div>
                             }
@@ -245,17 +228,17 @@
                         <label class="form-label mb-0">Deadline</label>
                         @if (editDeadline is not null)
                         {
-                            <button class="panel-subtask-remove ms-auto" title="Remove deadline" @onclick="() => editDeadline = null">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <button class="panel-subtask-remove ms-auto" title="Remove deadline"
+                                    @onclick="() => editDeadline = null">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                     stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18" />
                                     <line x1="6" y1="6" x2="18" y2="18" />
                                 </svg>
                             </button>
                         }
                     </div>
-                    <input type="date" class="form-control panel-date-input"
-                           value="@editDeadline"
+                    <input type="date" class="form-control panel-date-input" value="@editDeadline"
                            @oninput="e => editDeadline = e.Value?.ToString() is { Length: > 0 } s ? s : null" />
                 </div>
 
@@ -346,7 +329,6 @@
         else editDaysOfWeek &= ~bit;
     }
 
-    private Dictionary<Guid, int> intensities = [];
 
 
     private Chore? parentChore =>
@@ -399,8 +381,6 @@
             : Chore?.RecurrenceIntervalHours.HasValue == true ? "interval"
             : "none";
 
-        intensities = Chore?.ChoreDomains
-            .ToDictionary(cd => cd.DomainId, cd => cd.LinkIntensity) ?? [];
         _shouldFocus = true;
     }
 
@@ -414,17 +394,6 @@
         }
     }
 
-    private int GetIntensity(Domain domain) =>
-        intensities.TryGetValue(domain.Id!.Value, out var v) ? v : ChoreDomain.DEFAULT_LINK_INTENSITY;
-
-    private void SetIntensity(Domain domain, ChangeEventArgs e) =>
-        intensities[domain.Id!.Value] = int.Parse(e.Value!.ToString()!);
-
-    private void SetIntensityFromNumber(Domain domain, ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var v) && v >= 1)
-            intensities[domain.Id!.Value] = v;
-    }
 
     private async Task AddDomain(Domain domain)
     {
@@ -432,7 +401,6 @@
         try
         {
             await choreDomainService.AddLink(Chore!, domain);
-            intensities[domain.Id!.Value] = ChoreDomain.DEFAULT_LINK_INTENSITY;
         }
         finally { _isBusy = false; }
     }
@@ -443,7 +411,6 @@
         try
         {
             await choreDomainService.RemoveLink(Chore!, domain);
-            intensities.Remove(domain.Id!.Value);
         }
         finally { _isBusy = false; }
     }
@@ -454,7 +421,7 @@
         _isBusy = true;
         try
         {
-            await choreService.SetParent(Chore, parent, AllDomains);
+            await choreService.SetParent(Chore, parent);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
@@ -465,7 +432,7 @@
         _isBusy = true;
         try
         {
-            await choreService.RemoveParent(child, AllDomains);
+            await choreService.RemoveParent(child);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
@@ -477,7 +444,7 @@
         _isBusy = true;
         try
         {
-            await choreService.RemoveParent(Chore, AllDomains);
+            await choreService.RemoveParent(Chore);
             await OnHierarchyChanged.InvokeAsync();
         }
         finally { _isBusy = false; }
@@ -538,18 +505,6 @@
             }
             if (choreChanged)
                 await choreService.UpdateChoreAsync(Chore);
-
-            if (!Chore.IsSubtask)
-            {
-                foreach (var cd in Chore!.ChoreDomains)
-                {
-                    if (intensities.TryGetValue(cd.DomainId, out var newIntensity) && newIntensity != cd.LinkIntensity)
-                    {
-                        cd.LinkIntensity = newIntensity;
-                        await choreDomainRepository.UpdateChoreDomainAsync(cd);
-                    }
-                }
-            }
         }
         finally
         {

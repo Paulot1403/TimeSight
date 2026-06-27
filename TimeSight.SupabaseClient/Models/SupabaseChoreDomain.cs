@@ -19,9 +19,6 @@ public class SupabaseChoreDomain : BaseModel
     [Column("user_id")]
     public Guid UserId { get; set; }
 
-    [Column("link_intensity")]
-    public int LinkIntensity { get; set; } = 2;
-
     public SupabaseChore? Chore { get; set; } = null!;
     public SupabaseDomain? Domain { get; set; } = null!;
 

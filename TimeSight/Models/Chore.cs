@@ -7,8 +7,11 @@ namespace TimeSight.Models;
 
 public class Chore
 {
+    public const int MAX_IMPORTANCE = 10;
+    public const int DEFAULT_IMPORTANCE = 3;
     public const int MAX_DURATION = 4;
     public const int MAX_EMERGENCY = 5;
+
 
     /// <summary>
     /// Seuils proposés à l'utilisateur pour "dans combien de temps une tâche devient urgente".
@@ -70,6 +73,8 @@ public class Chore
             field = isDone;
         }
     } = false;
+
+    public int Importance { get; set; } = DEFAULT_IMPORTANCE;
 
     /// <summary>
     /// De 1 à <see cref="Chore.MAX_DURATION"/>, ou null si pas d'estimation.
@@ -138,22 +143,4 @@ public class Chore
         return ParentChore.GetRootOfThis();
     }
 
-    public int CountAllDescendants() =>
-        Children.Sum(c => 1 + c.CountAllDescendants());
-
-    public int CountAllDoneDescendants() =>
-        Children.Sum(c => (c.IsDone ? 1 : 0) + c.CountAllDoneDescendants());
-
-    /// <summary>
-    /// Score ajouté au domaine quand CETTE tâche est complétée.
-    /// Sous-tâche : rootScore / totalDescendants. Racine sans enfants : score brut.
-    /// </summary>
-    public int GetScoreForDomain(Domain domain)
-    {
-        var root = GetRootOfThis();
-        ChoreDomain? cd = root.ChoreDomains.FirstOrDefault(c => c.DomainId == domain.Id!.Value);
-        if (cd == null) return 0;
-        if (!IsSubtask) return cd.LinkIntensity;
-        return cd.LinkIntensity / root.CountAllDescendants();
-    }
 }

@@ -96,12 +96,12 @@ else
 
             </div>
 
-        @if (showPanel)
-        {
-            <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains" OnClose="ClosePanel"
-                              AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
-        }
-    </li>
+            @if (showPanel)
+            {
+                <ChoreDetailPanel Chore="Chore" DomainsSelected="DomainsSelected" AllDomains="allDomains" OnClose="ClosePanel"
+                                  AllChores="AllChores" OnHierarchyChanged="OnHierarchyChanged" />
+            }
+        </li>
     }
 
 
@@ -267,13 +267,13 @@ else
 
     private async Task SetParent(Chore parent)
     {
-        await choreService.SetParent(Chore!, parent, allDomains);
+        await choreService.SetParent(Chore!, parent);
         await OnHierarchyChanged.InvokeAsync();
     }
 
     private async Task UnlinkFromParent()
     {
-        await choreService.RemoveParent(Chore!, allDomains);
+        await choreService.RemoveParent(Chore!);
         await OnHierarchyChanged.InvokeAsync();
     }
 

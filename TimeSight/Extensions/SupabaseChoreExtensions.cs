@@ -27,6 +27,7 @@ public static class SupabaseChoreExtensions
             RecurrenceDaysOfWeek = supabaseChore.RecurrenceDaysOfWeek,
             Deadline = supabaseChore.Deadline,
             EmergencyThresholdDays = supabaseChore.EmergencyThresholdDays,
+            Importance = supabaseChore.Importance ?? Chore.DEFAULT_IMPORTANCE,
             ChoreDomains = supabaseChore.SupabaseChoreDomains.Select(cd => cd.ToChoreDomain()).ToList()
         };
     }

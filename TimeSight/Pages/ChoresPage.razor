@@ -25,7 +25,7 @@ else
         <div>
             <h1 class="page-title">Tasks</h1>
             <p class="text-muted small mb-0">@orderedChores.Count task@(orderedChores.Count == 1 ? "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "s")@(IsFiltered ? $" of {choresDic.Count}" : "")</p>
             </div>
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
                 <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Order" disabled="@_isSorting">
@@ -64,8 +64,8 @@ else
 
         <div class="filter-bar">
             <div class="filter-row">
-                <input type="search" class="form-control form-control-sm" style="max-width: 220px;"
-                       placeholder="Search tasks…" value="@searchQuery"
+                <input type="search" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Search tasks…"
+                       value="@searchQuery"
                        @oninput="(ChangeEventArgs e) => OnSearchChanged(e.Value?.ToString() ?? string.Empty)" />
             </div>
 
@@ -135,7 +135,8 @@ else
 
     private bool _isAdding;
     private bool _isSorting;
-    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0 || !string.IsNullOrWhiteSpace(searchQuery);
+    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0 ||
+!string.IsNullOrWhiteSpace(searchQuery);
 
     private List<(Chore chore, int depth)> orderedChores = [];
 
@@ -238,7 +239,7 @@ else
         var wsId = workspaceState.CurrentWorkspace?.Id
             ?? throw new InvalidOperationException("No workspace selected");
         Chore chore = await choreService.CreateChoreAsync(UserId!.Value, wsId);
-        await choreService.SetParent(chore, parent, domains);
+        await choreService.SetParent(chore, parent);
         _newlyAddedChoreId = chore.Id;
         choresDic.Add(chore.Id, chore);
         RebuildOrderedChores();
@@ -315,7 +316,7 @@ else
         _isSorting = true;
         try
         {
-            _sortedChoreIds = orderChoresService.OrderChores(GetRoots(), domains);
+            _sortedChoreIds = orderChoresService.OrderChores(GetRoots());
 
             var wsId = workspaceState.CurrentWorkspace?.Id
                 ?? throw new InvalidOperationException("No workspace selected");
