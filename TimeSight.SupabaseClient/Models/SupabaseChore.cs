@@ -65,6 +65,9 @@ public class SupabaseChore : BaseModel
     [Column("start_date")]
     public DateOnly? StartDate { get; set; }
 
+    [Column("start_time")]
+    public int? StartTime { get; set; }
+
     public List<SupabaseChoreDomain> SupabaseChoreDomains { get; set; } = [];
     public bool ShouldSerializeSupabaseChoreDomains() => false;
 

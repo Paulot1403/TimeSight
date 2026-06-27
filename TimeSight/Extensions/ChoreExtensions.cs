@@ -28,6 +28,7 @@ public static class ChoreExtensions
             Deadline = chore.Deadline,
             EmergencyThresholdDays = chore.EmergencyThresholdDays,
             StartDate = chore.StartDate,
+            StartTime = chore.StartTime,
             Importance = chore.Importance,
             SupabaseChoreDomains = chore.ChoreDomains.Select(cd => cd.ToSupabaseChoreDomain()).ToList()
         };

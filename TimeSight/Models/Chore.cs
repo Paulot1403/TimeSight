@@ -116,6 +116,11 @@ public class Chore
     /// </summary>
     public DateOnly? StartDate { get; set; }
 
+    /// <summary>
+    /// Heure de début prévue, en minutes depuis minuit (ex: 540 = 9h00). null = pas d'heure définie.
+    /// </summary>
+    public int? StartTime { get; set; }
+
     public int Emergency
     {
         get
