@@ -10,7 +10,8 @@ namespace TimeSight.Services;
 public class ChoreService(
     IChoreRepository choreRepository,
     IChoreDomainRepository choreDomainRepository,
-    IDomainRepository domainRepository)
+    IDomainRepository domainRepository,
+    OutlookSyncService outlookSync)
 {
     public async Task<IDictionary<Guid, Chore>> GetChoresAsync(Guid workspaceId)
     {
@@ -174,13 +175,25 @@ public class ChoreService(
         [.. allDomains.Where(d => root.ChoreDomains.Any(cd => cd.DomainId == d.Id))];
 
 
-    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "") =>
-        await choreRepository.CreateChoreAsync(userId, workspaceId, name);
-    public async Task<Chore> UpdateChoreAsync(Chore chore) =>
-        await choreRepository.UpdateChoreAsync(chore);
+    public async Task<Chore> CreateChoreAsync(Guid userId, Guid workspaceId, string name = "")
+    {
+        var chore = await choreRepository.CreateChoreAsync(userId, workspaceId, name);
+        await outlookSync.SyncChoreCreatedAsync(chore);
+        return chore;
+    }
+
+    public async Task<Chore> UpdateChoreAsync(Chore chore)
+    {
+        var updated = await choreRepository.UpdateChoreAsync(chore);
+        await outlookSync.SyncChoreUpdatedAsync(updated);
+        return updated;
+    }
+
     public async Task DeleteChoreAsync(Chore chore)
     {
         chore.ParentChore?.Children.Remove(chore);
-        await choreRepository.DeleteChoreAsync(chore.Id);
+        var choreId = chore.Id;
+        await choreRepository.DeleteChoreAsync(choreId);
+        await outlookSync.SyncChoreDeletedAsync(choreId);
     }
 }

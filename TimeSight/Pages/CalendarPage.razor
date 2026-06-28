@@ -1,11 +1,12 @@
-@using TimeSight.Services
-@using TimeSight.repositories
-
 @page "/calendar"
 @attribute [Authorize]
 @implements IDisposable
+@using TimeSight.Services
+@using TimeSight.repositories
 @inject ChoreService choreService
+@inject IDomainRepository domainRepository
 @inject WorkspaceState workspaceState
+@inject NotificationService notificationService
 
 <PageTitle>Calendar — TimeSight</PageTitle>
 
@@ -15,82 +16,37 @@
 }
 else
 {
-    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
             <h1 class="page-title">Calendar</h1>
-            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks</p>
+            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks · click an event to mark done</p>
         </div>
     </div>
 
-    <div class="calendar-nav d-flex align-items-center gap-3 mb-4">
-        <button class="btn btn-outline-secondary btn-sm" @onclick="PrevMonth">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-            </svg>
-        </button>
-        <span class="calendar-month-label">@_viewDate.ToString("MMMM yyyy")</span>
-        <button class="btn btn-outline-secondary btn-sm" @onclick="NextMonth">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-            </svg>
-        </button>
-        <button class="btn btn-outline-secondary btn-sm ms-2" @onclick="GoToToday">Today</button>
-    </div>
-
-    <div class="calendar-legend d-flex gap-3 mb-3">
-        <span class="d-flex align-items-center gap-1 small">
-            <span class="cal-dot cal-dot-start"></span> Planned
-        </span>
-        <span class="d-flex align-items-center gap-1 small">
-            <span class="cal-dot cal-dot-deadline"></span> Deadline
-        </span>
-        <span class="d-flex align-items-center gap-1 small">
-            <span class="cal-dot cal-dot-recur"></span> Recurring
-        </span>
-    </div>
-
-    <div class="calendar-grid">
-        @foreach (var dayName in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
-        {
-            <div class="calendar-day-header">@dayName</div>
-        }
-
-        @foreach (var day in _calendarDays)
-        {
-            var isToday = day == _today;
-            var isCurrentMonth = day.Month == _viewDate.Month;
-            var entries = GetEntriesForDay(day);
-
-            <div class="calendar-cell @(isToday ? "calendar-cell-today" : "") @(!isCurrentMonth ? "calendar-cell-other-month" : "")">
-                <div class="calendar-cell-number">@day.Day</div>
-                @foreach (var entry in entries.Take(4))
-                {
-                    <div class="cal-entry cal-entry-@entry.Kind" title="@entry.Chore.Name">
-                        @entry.Chore.Name
-                    </div>
-                }
-                @if (entries.Count > 4)
-                {
-                    <div class="cal-entry-more">+@(entries.Count - 4) more</div>
-                }
-            </div>
-        }
-    </div>
+    <RadzenScheduler
+        TItem="CalendarAppointment"
+        Data="@_appointments"
+        StartProperty="@nameof(CalendarAppointment.Start)"
+        EndProperty="@nameof(CalendarAppointment.End)"
+        TextProperty="@nameof(CalendarAppointment.Text)"
+        AppointmentSelect="@OnAppointmentSelect"
+        AppointmentRender="@OnAppointmentRender"
+        Style="height:calc(100vh - 160px)">
+        <RadzenMonthView />
+        <RadzenWeekView />
+        <RadzenDayView />
+    </RadzenScheduler>
 }
 
 @code {
     private IDictionary<Guid, Chore> _chores = new Dictionary<Guid, Chore>();
-    private DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
-    private DateOnly _viewDate;
-    private List<DateOnly> _calendarDays = [];
+    private List<Domain> _domains = [];
+    private List<CalendarAppointment> _appointments = [];
 
-    private record CalendarEntry(Chore Chore, string Kind);
+    private record CalendarAppointment(string Kind, string Text, DateTime Start, DateTime End, Chore Chore);
 
     protected override async Task OnInitializedAsync()
     {
-        _viewDate = new DateOnly(_today.Year, _today.Month, 1);
         workspaceState.OnChanged += OnWorkspaceChanged;
         await LoadData();
     }
@@ -104,71 +60,86 @@ else
     private async Task LoadData()
     {
         if (workspaceState.CurrentWorkspace?.Id is Guid wsId)
+        {
             _chores = await choreService.GetChoresAsync(wsId);
+            _domains = await domainRepository.GetDomainsAsync(wsId);
+        }
         else
+        {
             _chores = new Dictionary<Guid, Chore>();
-
-        BuildCalendarDays();
+            _domains = [];
+        }
+        _appointments = BuildAppointments();
     }
 
-    private void BuildCalendarDays()
+    private List<CalendarAppointment> BuildAppointments()
     {
-        var first = new DateOnly(_viewDate.Year, _viewDate.Month, 1);
-        // Start on Monday; DayOfWeek: Mon=1..Sun=0 → offset 0..6
-        int offset = ((int)first.DayOfWeek + 6) % 7;
-        var start = first.AddDays(-offset);
-
-        _calendarDays = [];
-        for (int i = 0; i < 42; i++)
-            _calendarDays.Add(start.AddDays(i));
-    }
-
-    private List<CalendarEntry> GetEntriesForDay(DateOnly day)
-    {
-        var entries = new List<CalendarEntry>();
+        var result = new List<CalendarAppointment>();
         foreach (var chore in _chores.Values.Where(c => !c.IsDone))
         {
-            if (chore.StartDate == day)
-                entries.Add(new(chore, "start"));
+            if (chore.StartDate.HasValue)
+            {
+                var startMinutes = chore.StartTime ?? 9 * 60;
+                var start = chore.StartDate.Value.ToDateTime(
+                    TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(startMinutes)));
 
-            if (chore.Deadline == day)
-                entries.Add(new(chore, "deadline"));
+                DateTime end;
+                if (chore.Deadline.HasValue && chore.Deadline.Value > chore.StartDate.Value)
+                    end = chore.Deadline.Value.ToDateTime(new TimeOnly(23, 0));
+                else
+                    end = start.AddHours(1);
 
-            if (IsRecurringOnDay(chore, day))
-                entries.Add(new(chore, "recur"));
+                result.Add(new("start", chore.Name, start, end, chore));
+            }
+            else if (chore.Deadline.HasValue)
+            {
+                var end = chore.Deadline.Value.ToDateTime(new TimeOnly(23, 59));
+                result.Add(new("deadline", chore.Name, end.AddHours(-1), end, chore));
+            }
+
+            // Fixed-schedule recurring: add upcoming occurrences for the next 60 days
+            if (chore.RecurrenceDaysOfWeek.HasValue && chore.RecurrenceResetTime.HasValue
+                && !chore.RecurrenceIntervalHours.HasValue)
+            {
+                var resetTime = TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(chore.RecurrenceResetTime.Value));
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                for (int i = 0; i < 60; i++)
+                {
+                    var day = today.AddDays(i);
+                    int bit = ((int)day.DayOfWeek + 6) % 7;
+                    if ((chore.RecurrenceDaysOfWeek.Value & (1 << bit)) != 0)
+                    {
+                        var dt = day.ToDateTime(resetTime);
+                        result.Add(new("recur", chore.Name, dt, dt.AddHours(1), chore));
+                    }
+                }
+            }
         }
-        return entries;
+        return result;
     }
 
-    private static bool IsRecurringOnDay(Chore chore, DateOnly day)
+    private async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<CalendarAppointment> args)
     {
-        if (chore.RecurrenceResetTime is null) return false;
+        var chore = args.Data.Chore;
+        if (chore.IsDone) return;
 
-        // Interval-based recurrence: show on start date if set, not on every day
-        if (chore.RecurrenceIntervalHours.HasValue) return false;
+        await choreService.SetDoneState(chore, _domains, isDone: true, changeDomainsScore: true);
+        _appointments = BuildAppointments();
 
-        // Fixed schedule: check day-of-week bitmask (Mon=1,Tue=2,Wed=4,Thu=8,Fri=16,Sat=32,Sun=64)
-        int mask = chore.RecurrenceDaysOfWeek ?? 127;
-        int bit = ((int)day.DayOfWeek + 6) % 7; // Mon=0..Sun=6
-        return (mask & (1 << bit)) != 0;
+        notificationService.Notify(NotificationSeverity.Success,
+            summary: "Done",
+            detail: $"'{chore.Name}' marked as done",
+            duration: 2500);
     }
 
-    private void PrevMonth()
+    private void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<CalendarAppointment> args)
     {
-        _viewDate = _viewDate.AddMonths(-1);
-        BuildCalendarDays();
-    }
-
-    private void NextMonth()
-    {
-        _viewDate = _viewDate.AddMonths(1);
-        BuildCalendarDays();
-    }
-
-    private void GoToToday()
-    {
-        _viewDate = new DateOnly(_today.Year, _today.Month, 1);
-        BuildCalendarDays();
+        args.Attributes["style"] = args.Data.Kind switch
+        {
+            "deadline" => "background:#c0392b;border-color:#c0392b",
+            "recur"    => "background:#6c3fc4;border-color:#6c3fc4",
+            _          => "background:#1565c0;border-color:#1565c0"
+        };
     }
 
     public void Dispose() => workspaceState.OnChanged -= OnWorkspaceChanged;
