@@ -18,15 +18,21 @@ public class SupabaseAuthService(Supabase.Client supabase)
         await supabase.Auth.SignIn(email, password);
     }
 
-    public async Task<SignInInfo> GetSignInInfoForProviderAsync(Constants.Provider provider, string redirectUri)
+    public async Task<SignInInfo> GetSignInInfoForProviderAsync(
+        Constants.Provider provider,
+        string redirectUri,
+        string? scopes = null)
     {
-        var info = await supabase.Auth.SignIn(provider,
-            new SignInOptions
-            {
-                RedirectTo = redirectUri,
-                FlowType = Constants.OAuthFlowType.PKCE
-            });
+        var options = new SignInOptions
+        {
+            RedirectTo = redirectUri,
+            FlowType = Constants.OAuthFlowType.PKCE
+        };
 
+        if (scopes is not null)
+            options.QueryParams = new Dictionary<string, string> { ["scopes"] = scopes };
+
+        var info = await supabase.Auth.SignIn(provider, options);
         return new SignInInfo(info.Uri, info.PKCEVerifier!);
     }
 
