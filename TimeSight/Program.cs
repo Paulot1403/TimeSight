@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
@@ -7,6 +8,9 @@ using TimeSight.Services;
 using TimeSight.SupabaseClient;
 using TimeSight.SupabaseClient.Services;
 
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("fr-FR");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("fr-FR");
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
