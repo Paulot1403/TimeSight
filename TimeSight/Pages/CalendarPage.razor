@@ -33,8 +33,8 @@ else
         AppointmentRender="@OnAppointmentRender"
         Style="height:calc(100vh - 160px)">
         <RadzenMonthView />
-        <RadzenWeekView />
-        <RadzenDayView />
+        <RadzenWeekView StartTime="@TimeSpan.Zero" />
+        <RadzenDayView StartTime="@TimeSpan.Zero" />
     </RadzenScheduler>
 }
 
