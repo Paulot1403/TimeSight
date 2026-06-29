@@ -6,9 +6,16 @@
 @inject ChoreService choreService
 @inject IDomainRepository domainRepository
 @inject WorkspaceState workspaceState
-@inject NotificationService notificationService
 
-<PageTitle>Calendar — TimeSight</PageTitle>
+<PageTitle>Calendar &#x2013; TimeSight</PageTitle>
+
+@if (_undoChore != null)
+{
+    <div class="calendar-undo-toast">
+        <span>'@_undoChore.Name' marked as done</span>
+        <button class="btn btn-sm btn-outline-secondary ms-3" @onclick="UndoMarkDone">Undo</button>
+    </div>
+}
 
 @if (workspaceState.CurrentWorkspace == null)
 {
@@ -19,7 +26,7 @@ else
     <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
             <h1 class="page-title">Calendar</h1>
-            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks · click an event to mark done</p>
+            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks &middot; click an event to mark done</p>
         </div>
     </div>
 
@@ -42,6 +49,10 @@ else
     private IDictionary<Guid, Chore> _chores = new Dictionary<Guid, Chore>();
     private List<Domain> _domains = [];
     private List<CalendarAppointment> _appointments = [];
+
+    private Chore? _undoChore;
+    private List<Domain> _undoDomains = [];
+    private System.Threading.Timer? _undoTimer;
 
     private record CalendarAppointment(string Kind, string Text, DateTime Start, DateTime End, Chore Chore);
 
@@ -126,10 +137,35 @@ else
         await choreService.SetDoneState(chore, _domains, isDone: true, changeDomainsScore: true);
         _appointments = BuildAppointments();
 
-        notificationService.Notify(NotificationSeverity.Success,
-            summary: "Done",
-            detail: $"'{chore.Name}' marked as done",
-            duration: 2500);
+        ShowUndoToast(chore);
+    }
+
+    private void ShowUndoToast(Chore chore)
+    {
+        _undoTimer?.Dispose();
+        _undoChore = chore;
+        _undoDomains = [.._domains];
+
+        _undoTimer = new System.Threading.Timer(async _ =>
+        {
+            _undoChore = null;
+            _undoTimer?.Dispose();
+            _undoTimer = null;
+            await InvokeAsync(StateHasChanged);
+        }, null, 5000, System.Threading.Timeout.Infinite);
+    }
+
+    private async Task UndoMarkDone()
+    {
+        if (_undoChore == null) return;
+
+        var chore = _undoChore;
+        _undoChore = null;
+        _undoTimer?.Dispose();
+        _undoTimer = null;
+
+        await choreService.SetDoneState(chore, _undoDomains, isDone: false, changeDomainsScore: true);
+        await LoadData();
     }
 
     private void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<CalendarAppointment> args)
@@ -142,5 +178,9 @@ else
         };
     }
 
-    public void Dispose() => workspaceState.OnChanged -= OnWorkspaceChanged;
+    public void Dispose()
+    {
+        workspaceState.OnChanged -= OnWorkspaceChanged;
+        _undoTimer?.Dispose();
+    }
 }
