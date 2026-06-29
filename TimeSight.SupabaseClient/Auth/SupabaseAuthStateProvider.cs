@@ -30,11 +30,19 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposabl
         if (user is null)
             return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 
+        var email = user.Email
+            ?? user.UserMetadata?.GetValueOrDefault("email")?.ToString()
+            ?? string.Empty;
+
+        var name = user.UserMetadata?.GetValueOrDefault("full_name")?.ToString()
+            ?? user.UserMetadata?.GetValueOrDefault("name")?.ToString()
+            ?? email;
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new(ClaimTypes.Name, user.Email ?? string.Empty),
+            new(ClaimTypes.Email, email),
+            new(ClaimTypes.Name, name),
         };
 
         var identity = new ClaimsIdentity(claims, "supabase");
