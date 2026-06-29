@@ -38,14 +38,17 @@ else
         TextProperty="@nameof(CalendarAppointment.Text)"
         AppointmentSelect="@OnAppointmentSelect"
         AppointmentRender="@OnAppointmentRender"
+        Culture="@_culture"
         Style="height:calc(100vh - 160px)">
-        <RadzenMonthView />
         <RadzenWeekView StartTime="@TimeSpan.Zero" EndTime="@TimeSpan.FromHours(24)" />
+        <RadzenMonthView />
         <RadzenDayView StartTime="@TimeSpan.Zero" EndTime="@TimeSpan.FromHours(24)" />
     </RadzenScheduler>
 }
 
 @code {
+    private static readonly System.Globalization.CultureInfo _culture = new("fr-FR");
+
     private IDictionary<Guid, Chore> _chores = new Dictionary<Guid, Chore>();
     private List<Domain> _domains = [];
     private List<CalendarAppointment> _appointments = [];
