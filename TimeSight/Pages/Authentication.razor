@@ -53,10 +53,17 @@
 
         try
         {
-            var verifier = await JS.InvokeAsync<string?>("sessionStorage.getItem", "pkce_verifier");
-            await JS.InvokeVoidAsync("sessionStorage.removeItem", "pkce_verifier");
+            // Verifier is in localStorage (written by the main window before opening the popup).
+            // sessionStorage can't be used here because popups have their own sessionStorage.
+            var verifier = await JS.InvokeAsync<string?>("localStorage.getItem", "pkce_verifier");
+            await JS.InvokeVoidAsync("localStorage.removeItem", "pkce_verifier");
             await authService.SignInWithCodeAsync(verifier ?? "", code);
-            Navigation.NavigateTo(Navigation.BaseUri);
+
+            var isPopup = await JS.InvokeAsync<bool>("oauthPopup.isPopup");
+            if (isPopup)
+                await JS.InvokeVoidAsync("oauthPopup.notify", "success");
+            else
+                Navigation.NavigateTo(Navigation.BaseUri);
         }
         catch
         {

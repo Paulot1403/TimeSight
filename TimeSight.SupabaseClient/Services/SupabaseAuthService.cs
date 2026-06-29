@@ -40,4 +40,10 @@ public class SupabaseAuthService(Supabase.Client supabase)
     {
         await supabase.Auth.ExchangeCodeForSession(pkceVerifier, code);
     }
+
+    public async Task ReloadSessionAsync()
+    {
+        supabase.Auth.LoadSession();
+        await supabase.Auth.RetrieveSessionAsync();
+    }
 }

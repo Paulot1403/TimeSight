@@ -103,10 +103,28 @@
 
             if (signInInfo.SignInUri is not null)
             {
-                if (signInInfo.PKCEVerifier is not null)
-                    await JS.InvokeVoidAsync("sessionStorage.setItem", "pkce_verifier", signInInfo.PKCEVerifier);
+                bool popupBlocked = false;
+                try
+                {
+                    await JS.InvokeVoidAsync("oauthPopup.open",
+                        signInInfo.SignInUri.ToString(),
+                        signInInfo.PKCEVerifier ?? "");
+                }
+                catch (JSException ex) when (ex.Message.Contains("popup_blocked"))
+                {
+                    popupBlocked = true;
+                }
 
-                Navigation.NavigateTo(signInInfo.SignInUri.ToString(), forceLoad: true);
+                if (popupBlocked)
+                {
+                    // Popup was blocked: fall back to full-page redirect.
+                    await JS.InvokeVoidAsync("localStorage.setItem", "pkce_verifier", signInInfo.PKCEVerifier ?? "");
+                    Navigation.NavigateTo(signInInfo.SignInUri.ToString(), forceLoad: true);
+                    return;
+                }
+
+                await authService.ReloadSessionAsync();
+                Navigation.NavigateTo(Navigation.BaseUri);
             }
         }
         catch (Exception ex)
