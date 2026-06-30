@@ -57,8 +57,18 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         try
         {
             // The refresh-ms-token function requires the caller's Supabase JWT (verify_jwt),
-            // passed here as the Functions client's bearer token.
+            // passed here as the Functions client's bearer token. CurrentSession can be
+            // transiently empty (e.g. right after a reload, before GoTrue rehydrates from
+            // storage), so reload once from local storage before giving up.
             var jwt = supabase.Auth.CurrentSession?.AccessToken;
+            if (string.IsNullOrEmpty(jwt))
+            {
+                supabase.Auth.LoadSession();
+                await supabase.Auth.RetrieveSessionAsync();
+                jwt = supabase.Auth.CurrentSession?.AccessToken;
+            }
+            if (string.IsNullOrEmpty(jwt)) return null;
+
             var options = new Supabase.Functions.Client.InvokeFunctionOptions
             {
                 Body = new Dictionary<string, object> { ["refresh_token"] = refreshToken }
