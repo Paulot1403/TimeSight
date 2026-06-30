@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,13 +12,20 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 {
     private const string CalendarStorageKey = "timesight.outlook-calendar-id";
     private const string EventMapStorageKey = "timesight.outlook-event-map";
+    private const string AccessTokenStorageKey = "timesight.ms-access-token";
+    private const string RefreshTokenStorageKey = "timesight.ms-refresh-token";
 
-    private string? GetAccessToken() => supabase.Auth.CurrentSession?.ProviderToken;
+    // Supabase only returns the Microsoft provider token on the initial OAuth
+    // exchange and drops it on every subsequent session refresh, so it's captured
+    // separately in localStorage at login time (see Authentication.razor) instead
+    // of being read from supabase.Auth.CurrentSession here.
+    private async Task<string?> GetAccessTokenAsync() =>
+        await js.InvokeAsync<string?>("localStorage.getItem", AccessTokenStorageKey);
 
-    private HttpRequestMessage BuildRequest(HttpMethod method, string relativeUrl, object? body = null)
+    private async Task<HttpRequestMessage> BuildRequestAsync(HttpMethod method, string relativeUrl, object? body = null)
     {
         var req = new HttpRequestMessage(method, relativeUrl);
-        var token = GetAccessToken();
+        var token = await GetAccessTokenAsync();
         if (token is not null)
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         if (body is not null)
@@ -25,9 +33,54 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         return req;
     }
 
+    // The Microsoft access token is short-lived (~1 hour) and Supabase never refreshes
+    // it on our behalf, so any call can come back 401 once it expires. When that happens
+    // we exchange the stored provider_refresh_token for a new access token (via the
+    // refresh-ms-token edge function, since that exchange requires the Azure app's
+    // client secret) and retry the request once.
+    private async Task<HttpResponseMessage> SendWithRefreshAsync(HttpClient client, HttpMethod method, string relativeUrl, object? body = null)
+    {
+        var req = await BuildRequestAsync(method, relativeUrl, body);
+        var resp = await client.SendAsync(req);
+        if (resp.StatusCode != HttpStatusCode.Unauthorized) return resp;
+
+        if (await RefreshAccessTokenAsync() is null) return resp;
+
+        var retryReq = await BuildRequestAsync(method, relativeUrl, body);
+        return await client.SendAsync(retryReq);
+    }
+
+    private async Task<string?> RefreshAccessTokenAsync()
+    {
+        var refreshToken = await js.InvokeAsync<string?>("localStorage.getItem", RefreshTokenStorageKey);
+        if (string.IsNullOrEmpty(refreshToken)) return null;
+        try
+        {
+            // The refresh-ms-token function requires the caller's Supabase JWT (verify_jwt),
+            // passed here as the Functions client's bearer token.
+            var jwt = supabase.Auth.CurrentSession?.AccessToken;
+            var options = new Supabase.Functions.Client.InvokeFunctionOptions
+            {
+                Body = new Dictionary<string, object> { ["refresh_token"] = refreshToken }
+            };
+            var result = await supabase.Functions.Invoke<RefreshTokenResponse>("refresh-ms-token", jwt, options);
+            if (string.IsNullOrEmpty(result?.AccessToken)) return null;
+
+            await js.InvokeVoidAsync("localStorage.setItem", AccessTokenStorageKey, result.AccessToken);
+            if (!string.IsNullOrEmpty(result.RefreshToken))
+                await js.InvokeVoidAsync("localStorage.setItem", RefreshTokenStorageKey, result.RefreshToken);
+
+            return result.AccessToken;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async Task<string?> GetOrCreateCalendarAsync()
     {
-        if (string.IsNullOrEmpty(GetAccessToken())) return null;
+        if (string.IsNullOrEmpty(await GetAccessTokenAsync())) return null;
         try
         {
             var stored = await js.InvokeAsync<string?>("localStorage.getItem", CalendarStorageKey);
@@ -35,8 +88,7 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
 
-            var listReq = BuildRequest(HttpMethod.Get, "me/calendars");
-            var listResp = await client.SendAsync(listReq);
+            var listResp = await SendWithRefreshAsync(client, HttpMethod.Get, "me/calendars");
             if (listResp.IsSuccessStatusCode)
             {
                 var listData = await listResp.Content.ReadFromJsonAsync<GraphListResponse<GraphCalendar>>();
@@ -49,8 +101,7 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
                 }
             }
 
-            var createReq = BuildRequest(HttpMethod.Post, "me/calendars", new { name = "TimeSight" });
-            var createResp = await client.SendAsync(createReq);
+            var createResp = await SendWithRefreshAsync(client, HttpMethod.Post, "me/calendars", new { name = "TimeSight" });
             if (!createResp.IsSuccessStatusCode) return null;
 
             var created = await createResp.Content.ReadFromJsonAsync<GraphCalendar>();
@@ -67,12 +118,11 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
     public async Task<string?> CreateEventAsync(string calendarId, Chore chore)
     {
-        if (string.IsNullOrEmpty(GetAccessToken())) return null;
+        if (string.IsNullOrEmpty(await GetAccessTokenAsync())) return null;
         try
         {
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
-            var req = BuildRequest(HttpMethod.Post, $"me/calendars/{calendarId}/events", BuildEventBody(chore));
-            var resp = await client.SendAsync(req);
+            var resp = await SendWithRefreshAsync(client, HttpMethod.Post, $"me/calendars/{calendarId}/events", BuildEventBody(chore));
             if (!resp.IsSuccessStatusCode) return null;
             var evt = await resp.Content.ReadFromJsonAsync<GraphEvent>();
             return evt?.Id;
@@ -82,24 +132,22 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
     public async Task UpdateEventAsync(string calendarId, string eventId, Chore chore)
     {
-        if (string.IsNullOrEmpty(GetAccessToken())) return;
+        if (string.IsNullOrEmpty(await GetAccessTokenAsync())) return;
         try
         {
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
-            var req = BuildRequest(new HttpMethod("PATCH"), $"me/calendars/{calendarId}/events/{eventId}", BuildEventBody(chore));
-            await client.SendAsync(req);
+            await SendWithRefreshAsync(client, new HttpMethod("PATCH"), $"me/calendars/{calendarId}/events/{eventId}", BuildEventBody(chore));
         }
         catch { }
     }
 
     public async Task DeleteEventAsync(string calendarId, string eventId)
     {
-        if (string.IsNullOrEmpty(GetAccessToken())) return;
+        if (string.IsNullOrEmpty(await GetAccessTokenAsync())) return;
         try
         {
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
-            var req = BuildRequest(HttpMethod.Delete, $"me/calendars/{calendarId}/events/{eventId}");
-            await client.SendAsync(req);
+            await SendWithRefreshAsync(client, HttpMethod.Delete, $"me/calendars/{calendarId}/events/{eventId}");
         }
         catch { }
     }
@@ -152,4 +200,9 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
     private record GraphListResponse<T>([property: JsonPropertyName("value")] List<T>? Value);
     private record GraphCalendar([property: JsonPropertyName("id")] string? Id, [property: JsonPropertyName("name")] string? Name);
     private record GraphEvent([property: JsonPropertyName("id")] string? Id);
+
+    // Deserialized via Newtonsoft.Json by Supabase.Functions's Invoke<T>, not System.Text.Json.
+    private record RefreshTokenResponse(
+        [property: Newtonsoft.Json.JsonProperty("access_token")] string? AccessToken,
+        [property: Newtonsoft.Json.JsonProperty("refresh_token")] string? RefreshToken);
 }

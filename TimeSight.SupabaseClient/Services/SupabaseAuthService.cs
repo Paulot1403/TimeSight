@@ -36,9 +36,13 @@ public class SupabaseAuthService(Supabase.Client supabase)
         return new SignInInfo(info.Uri, info.PKCEVerifier!);
     }
 
-    public async Task SignInWithCodeAsync(string pkceVerifier, string code)
+    public async Task<MicrosoftTokens> SignInWithCodeAsync(string pkceVerifier, string code)
     {
-        await supabase.Auth.ExchangeCodeForSession(pkceVerifier, code);
+        var session = await supabase.Auth.ExchangeCodeForSession(pkceVerifier, code);
+        // Supabase only returns provider_token/provider_refresh_token on this initial
+        // exchange; subsequent session refreshes drop them, so callers must capture
+        // them here if they need them.
+        return new MicrosoftTokens(session?.ProviderToken, session?.ProviderRefreshToken);
     }
 
     public async Task ReloadSessionAsync()
