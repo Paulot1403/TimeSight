@@ -30,12 +30,19 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposabl
         if (user is null)
             return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 
+        // user_metadata is only populated at first sign-up and isn't refreshed on later
+        // logins, so fall back to the OAuth identity's data (refreshed every sign-in).
+        var identityData = user.Identities?.FirstOrDefault()?.IdentityData;
+
         var email = user.Email
             ?? user.UserMetadata?.GetValueOrDefault("email")?.ToString()
+            ?? identityData?.GetValueOrDefault("email")?.ToString()
             ?? string.Empty;
 
         var name = user.UserMetadata?.GetValueOrDefault("full_name")?.ToString()
             ?? user.UserMetadata?.GetValueOrDefault("name")?.ToString()
+            ?? identityData?.GetValueOrDefault("full_name")?.ToString()
+            ?? identityData?.GetValueOrDefault("name")?.ToString()
             ?? email;
 
         var claims = new List<Claim>

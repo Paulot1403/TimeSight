@@ -26,25 +26,20 @@ else
     <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
             <h1 class="page-title">Calendar</h1>
-            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks &middot; click an event to mark done</p>
+            <p class="text-muted small mb-0">Planned dates, deadlines &amp; recurring tasks &middot; click an event to mark
+                done</p>
+            </div>
         </div>
-    </div>
 
-    <RadzenScheduler
-        TItem="CalendarAppointment"
-        Data="@_appointments"
-        StartProperty="@nameof(CalendarAppointment.Start)"
-        EndProperty="@nameof(CalendarAppointment.End)"
-        TextProperty="@nameof(CalendarAppointment.Text)"
-        AppointmentSelect="@OnAppointmentSelect"
-        AppointmentRender="@OnAppointmentRender"
-        Culture="@_culture"
-        Style="height:calc(100vh - 160px)">
-        <RadzenWeekView StartTime="@TimeSpan.Zero" EndTime="@TimeSpan.FromHours(24)" />
-        <RadzenMonthView />
-        <RadzenDayView StartTime="@TimeSpan.Zero" EndTime="@TimeSpan.FromHours(24)" />
-    </RadzenScheduler>
-}
+        <RadzenScheduler TItem="CalendarAppointment" Data="@_appointments" StartProperty="@nameof(CalendarAppointment.Start)"
+                         EndProperty="@nameof(CalendarAppointment.End)" TextProperty="@nameof(CalendarAppointment.Text)"
+                         AppointmentSelect="@OnAppointmentSelect" AppointmentRender="@OnAppointmentRender" Culture="@_culture"
+                         Style="height:calc(100vh - 160px)">
+            <RadzenWeekView StartTime="@TimeSpan.FromHours(5)" EndTime="@TimeSpan.FromHours(24)" />
+            <RadzenMonthView />
+            <RadzenDayView StartTime="@TimeSpan.FromHours(5)" EndTime="@TimeSpan.FromHours(24)" />
+        </RadzenScheduler>
+    }
 
 @code {
     private static readonly System.Globalization.CultureInfo _culture = new("fr-FR");
@@ -147,7 +142,7 @@ else
     {
         _undoTimer?.Dispose();
         _undoChore = chore;
-        _undoDomains = [.._domains];
+        _undoDomains = [.. _domains];
 
         _undoTimer = new System.Threading.Timer(async _ =>
         {
@@ -176,8 +171,8 @@ else
         args.Attributes["style"] = args.Data.Kind switch
         {
             "deadline" => "background:#c0392b;border-color:#c0392b",
-            "recur"    => "background:#6c3fc4;border-color:#6c3fc4",
-            _          => "background:#1565c0;border-color:#1565c0"
+            "recur" => "background:#6c3fc4;border-color:#6c3fc4",
+            _ => "background:#1565c0;border-color:#1565c0"
         };
     }
 
