@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 
@@ -10,11 +11,16 @@ namespace TimeSight.SupabaseClient.Auth;
 /// </summary>
 public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposable
 {
-    private readonly Supabase.Client _supabase;
+    private const string EmailStorageKey = "timesight.userEmail";
 
-    public SupabaseAuthStateProvider(Supabase.Client supabase)
+    private readonly Supabase.Client _supabase;
+    private readonly IJSInProcessRuntime _js;
+
+    public SupabaseAuthStateProvider(Supabase.Client supabase, IJSRuntime jsRuntime)
     {
         _supabase = supabase;
+        // In Blazor WASM, IJSRuntime is WebAssemblyJSRuntime which implements IJSInProcessRuntime
+        _js = (IJSInProcessRuntime)jsRuntime;
         _supabase.Auth.AddStateChangedListener(OnAuthStateChanged);
     }
 
@@ -34,22 +40,25 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposabl
         // logins, so fall back to the OAuth identity's data (refreshed every sign-in).
         var identityData = user.Identities?.FirstOrDefault()?.IdentityData;
 
-        var email = user.Email
-            ?? user.UserMetadata?.GetValueOrDefault("email")?.ToString()
-            ?? identityData?.GetValueOrDefault("email")?.ToString()
-            ?? string.Empty;
+        // A token refresh can return a trimmed user payload (no identities, blank email),
+        // so only trust candidates that actually look like an email, and persist the last
+        // known-good one so the display name stays put across refreshes instead of going blank.
+        var email = FirstValidEmail(
+            user.Email,
+            user.UserMetadata?.GetValueOrDefault("email")?.ToString(),
+            identityData?.GetValueOrDefault("email")?.ToString(),
+            identityData?.GetValueOrDefault("preferred_username")?.ToString());
 
-        var name = user.UserMetadata?.GetValueOrDefault("full_name")?.ToString()
-            ?? user.UserMetadata?.GetValueOrDefault("name")?.ToString()
-            ?? identityData?.GetValueOrDefault("full_name")?.ToString()
-            ?? identityData?.GetValueOrDefault("name")?.ToString()
-            ?? email;
+        if (email is not null)
+            _js.InvokeVoid("localStorage.setItem", EmailStorageKey, email);
+        else
+            email = _js.Invoke<string?>("localStorage.getItem", EmailStorageKey) ?? string.Empty;
 
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
             new(ClaimTypes.Email, email),
-            new(ClaimTypes.Name, name),
+            new(ClaimTypes.Name, email),
         };
 
         var identity = new ClaimsIdentity(claims, "supabase");
@@ -60,4 +69,7 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider, IDisposabl
     {
         _supabase.Auth.RemoveStateChangedListener(OnAuthStateChanged);
     }
+
+    private static string? FirstValidEmail(params string?[] candidates) =>
+        candidates.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c) && c.Contains('@'));
 }
