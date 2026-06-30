@@ -1,6 +1,6 @@
 <AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
+        Hello, @context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value!
         <a href="authentication/logout" class="nav-link btn btn-link">Log out</a>
     </Authorized>
     <NotAuthorized>
