@@ -188,10 +188,15 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
     private static object BuildEventBody(Chore chore)
     {
-        var startMinutes = chore.StartTime ?? 9 * 60;
-        var start = chore.StartDate.HasValue
-            ? chore.StartDate.Value.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(startMinutes)))
-            : DateTime.UtcNow;
+        var startMinutes = chore.StartTime ?? chore.RecurrenceResetTime ?? 9 * 60;
+
+        DateTime start;
+        if (chore.StartDate.HasValue)
+            start = chore.StartDate.Value.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(startMinutes)));
+        else if (chore.RecurrenceResetTime.HasValue)
+            start = ComputeNextOccurrence(DateTime.UtcNow, chore.RecurrenceResetTime.Value, chore.RecurrenceDaysOfWeek);
+        else
+            start = DateTime.UtcNow;
 
         DateTime end;
         if (chore.Deadline.HasValue && chore.StartDate.HasValue)
@@ -201,13 +206,116 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
         if (end <= start) end = start.AddHours(1);
 
-        return new
+        var subject = chore.Name;
+        var body = new { contentType = "text", content = chore.Description ?? string.Empty };
+        var startDto = new { dateTime = start.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" };
+        var endDto = new { dateTime = end.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" };
+        var recurrence = BuildRecurrence(chore, start);
+
+        if (recurrence is null)
+            return new { subject, body, start = startDto, end = endDto };
+
+        return new { subject, body, start = startDto, end = endDto, recurrence };
+    }
+
+    private static object? BuildRecurrence(Chore chore, DateTime eventStart)
+    {
+        var startDate = DateOnly.FromDateTime(eventStart).ToString("yyyy-MM-dd");
+
+        if (chore.RecurrenceResetTime.HasValue)
         {
-            subject = chore.Name,
-            body = new { contentType = "text", content = chore.Description ?? string.Empty },
-            start = new { dateTime = start.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" },
-            end = new { dateTime = end.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" }
+            if (chore.RecurrenceDaysOfWeek is null)
+                return new
+                {
+                    pattern = new { type = "daily", interval = 1 },
+                    range = new { type = "noEnd", startDate }
+                };
+
+            var days = DaysOfWeekMaskToNames(chore.RecurrenceDaysOfWeek.Value);
+            if (days.Length == 0) return null;
+            return new
+            {
+                pattern = new { type = "weekly", interval = 1, daysOfWeek = days },
+                range = new { type = "noEnd", startDate }
+            };
+        }
+
+        if (chore.RecurrenceIntervalHours.HasValue)
+        {
+            var dayName = GraphDayName(eventStart.DayOfWeek);
+            var dayOfMonth = eventStart.Day;
+            switch (chore.RecurrenceIntervalHours.Value)
+            {
+                case 24:
+                    return new { pattern = new { type = "daily", interval = 1 }, range = new { type = "noEnd", startDate } };
+                case 72:
+                    return new { pattern = new { type = "daily", interval = 3 }, range = new { type = "noEnd", startDate } };
+                case 168:
+                    return new { pattern = new { type = "weekly", interval = 1, daysOfWeek = new[] { dayName } }, range = new { type = "noEnd", startDate } };
+                case 336:
+                    return new { pattern = new { type = "weekly", interval = 2, daysOfWeek = new[] { dayName } }, range = new { type = "noEnd", startDate } };
+                case 720:
+                    return new { pattern = new { type = "absoluteMonthly", interval = 1, dayOfMonth }, range = new { type = "noEnd", startDate } };
+                case 1440:
+                    return new { pattern = new { type = "absoluteMonthly", interval = 2, dayOfMonth }, range = new { type = "noEnd", startDate } };
+            }
+        }
+
+        return null;
+    }
+
+    private static string[] DaysOfWeekMaskToNames(int mask)
+    {
+        var days = new List<string>();
+        if ((mask & 1) != 0) days.Add("monday");
+        if ((mask & 2) != 0) days.Add("tuesday");
+        if ((mask & 4) != 0) days.Add("wednesday");
+        if ((mask & 8) != 0) days.Add("thursday");
+        if ((mask & 16) != 0) days.Add("friday");
+        if ((mask & 32) != 0) days.Add("saturday");
+        if ((mask & 64) != 0) days.Add("sunday");
+        return [.. days];
+    }
+
+    private static string GraphDayName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "monday",
+        DayOfWeek.Tuesday => "tuesday",
+        DayOfWeek.Wednesday => "wednesday",
+        DayOfWeek.Thursday => "thursday",
+        DayOfWeek.Friday => "friday",
+        DayOfWeek.Saturday => "saturday",
+        DayOfWeek.Sunday => "sunday",
+        _ => "monday"
+    };
+
+    private static DateTime ComputeNextOccurrence(DateTime from, int resetTimeMinutes, int? daysOfWeekMask)
+    {
+        var time = TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(resetTimeMinutes));
+        for (var day = DateOnly.FromDateTime(from); ; day = day.AddDays(1))
+        {
+            if (daysOfWeekMask is null || MatchesDayMask(day.DayOfWeek, daysOfWeekMask.Value))
+            {
+                var candidate = day.ToDateTime(time);
+                if (candidate > from) return candidate;
+            }
+        }
+    }
+
+    private static bool MatchesDayMask(DayOfWeek dayOfWeek, int mask)
+    {
+        var bit = dayOfWeek switch
+        {
+            DayOfWeek.Monday => 1,
+            DayOfWeek.Tuesday => 2,
+            DayOfWeek.Wednesday => 4,
+            DayOfWeek.Thursday => 8,
+            DayOfWeek.Friday => 16,
+            DayOfWeek.Saturday => 32,
+            DayOfWeek.Sunday => 64,
+            _ => 0
         };
+        return (mask & bit) != 0;
     }
 
     private record GraphListResponse<T>([property: JsonPropertyName("value")] List<T>? Value);

@@ -80,5 +80,5 @@ public class OutlookSyncService(MicrosoftGraphService graphService, WorkspaceSta
     }
 
     private static bool HasCalendarDate(Chore chore) =>
-        chore.StartDate.HasValue || chore.Deadline.HasValue;
+        chore.StartDate.HasValue || chore.Deadline.HasValue || chore.RecurrenceResetTime.HasValue;
 }
