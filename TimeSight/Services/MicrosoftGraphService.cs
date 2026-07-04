@@ -10,8 +10,8 @@ namespace TimeSight.Services;
 
 public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory httpClientFactory, IJSRuntime js)
 {
-    private const string CalendarStorageKey = "timesight.outlook-calendar-id";
-    private const string EventMapStorageKey = "timesight.outlook-event-map";
+    private static string CalendarStorageKey(Guid workspaceId) => $"timesight.outlook-calendar-id.{workspaceId}";
+    private static string EventMapStorageKey(Guid workspaceId) => $"timesight.outlook-event-map.{workspaceId}";
     private const string AccessTokenStorageKey = "timesight.ms-access-token";
     private const string RefreshTokenStorageKey = "timesight.ms-refresh-token";
 
@@ -88,12 +88,15 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         }
     }
 
-    public async Task<string?> GetOrCreateCalendarAsync()
+    public async Task<string?> GetOrCreateCalendarAsync(Workspace workspace)
     {
         if (string.IsNullOrEmpty(await GetAccessTokenAsync())) return null;
+        if (workspace.Id is not Guid workspaceId) return null;
+        var calendarName = $"TimeSight/{workspace.Name}";
+        var storageKey = CalendarStorageKey(workspaceId);
         try
         {
-            var stored = await js.InvokeAsync<string?>("localStorage.getItem", CalendarStorageKey);
+            var stored = await js.InvokeAsync<string?>("localStorage.getItem", storageKey);
             if (!string.IsNullOrEmpty(stored)) return stored;
 
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
@@ -103,21 +106,21 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
             {
                 var listData = await listResp.Content.ReadFromJsonAsync<GraphListResponse<GraphCalendar>>();
                 var existing = listData?.Value?.FirstOrDefault(c =>
-                    string.Equals(c.Name, "TimeSight", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(c.Name, calendarName, StringComparison.OrdinalIgnoreCase));
                 if (existing?.Id is not null)
                 {
-                    await js.InvokeVoidAsync("localStorage.setItem", CalendarStorageKey, existing.Id);
+                    await js.InvokeVoidAsync("localStorage.setItem", storageKey, existing.Id);
                     return existing.Id;
                 }
             }
 
-            var createResp = await SendWithRefreshAsync(client, HttpMethod.Post, "me/calendars", new { name = "TimeSight" });
+            var createResp = await SendWithRefreshAsync(client, HttpMethod.Post, "me/calendars", new { name = calendarName });
             if (!createResp.IsSuccessStatusCode) return null;
 
             var created = await createResp.Content.ReadFromJsonAsync<GraphCalendar>();
             if (created?.Id is null) return null;
 
-            await js.InvokeVoidAsync("localStorage.setItem", CalendarStorageKey, created.Id);
+            await js.InvokeVoidAsync("localStorage.setItem", storageKey, created.Id);
             return created.Id;
         }
         catch
@@ -162,22 +165,22 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         catch { }
     }
 
-    public async Task<Dictionary<Guid, string>> LoadEventMapAsync()
+    public async Task<Dictionary<Guid, string>> LoadEventMapAsync(Guid workspaceId)
     {
         try
         {
-            var json = await js.InvokeAsync<string?>("localStorage.getItem", EventMapStorageKey);
+            var json = await js.InvokeAsync<string?>("localStorage.getItem", EventMapStorageKey(workspaceId));
             if (string.IsNullOrEmpty(json)) return [];
             return JsonSerializer.Deserialize<Dictionary<Guid, string>>(json) ?? [];
         }
         catch { return []; }
     }
 
-    public async Task SaveEventMapAsync(Dictionary<Guid, string> map)
+    public async Task SaveEventMapAsync(Guid workspaceId, Dictionary<Guid, string> map)
     {
         try
         {
-            await js.InvokeVoidAsync("localStorage.setItem", EventMapStorageKey,
+            await js.InvokeVoidAsync("localStorage.setItem", EventMapStorageKey(workspaceId),
                 JsonSerializer.Serialize(map));
         }
         catch { }
