@@ -1,14 +1,46 @@
 @inherits LayoutComponentBase
-<div class="ts-layout d-flex flex-column flex-sm-row min-vh-100">
-    <div class="ts-sidebar">
-        <NavMenu />
+
+@if (_showSplash)
+{
+    <div class="ts-splash @(_hidingSplash ? "ts-splash-hiding" : "")">
+        <div class="ts-splash-breath"></div>
+        <p class="ts-splash-quote">Le chemin compte plus que la destination.</p>
+        <p class="ts-splash-hint">Respire profondément.</p>
     </div>
-    <div class="d-flex flex-column flex-grow-1 overflow-hidden">
-        <div class="top-row d-flex align-items-center justify-content-end px-3 gap-3">
-            <LoginDisplay />
+}
+else
+{
+    <div class="ts-layout d-flex flex-column flex-sm-row min-vh-100">
+        <div class="ts-sidebar">
+            <NavMenu />
         </div>
-        <article class="ts-content flex-grow-1">
-            @Body
-        </article>
+        <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+            <div class="top-row d-flex align-items-center justify-content-end px-3 gap-3">
+                <LoginDisplay />
+            </div>
+            <article class="ts-content flex-grow-1">
+                @Body
+            </article>
+        </div>
     </div>
-</div>
+}
+
+@code {
+    private bool _showSplash = true;
+    private bool _hidingSplash = false;
+
+    protected override void OnInitialized()
+    {
+        _ = RunSplashTimerAsync();
+    }
+
+    private async Task RunSplashTimerAsync()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        _hidingSplash = true;
+        StateHasChanged();
+        await Task.Delay(600);
+        _showSplash = false;
+        StateHasChanged();
+    }
+}
