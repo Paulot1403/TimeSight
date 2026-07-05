@@ -4,7 +4,9 @@ globalThis.blazorHelpers = {
             element.focus();
             if (typeof element.select === 'function') element.select();
         }
-    }
+    },
+
+    getTimeZone: () => Intl.DateTimeFormat().resolvedOptions().timeZone
 };
 
 globalThis.oauthPopup = {

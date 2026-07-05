@@ -135,7 +135,7 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         try
         {
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
-            var resp = await SendWithRefreshAsync(client, HttpMethod.Post, $"me/calendars/{calendarId}/events", BuildEventBody(chore));
+            var resp = await SendWithRefreshAsync(client, HttpMethod.Post, $"me/calendars/{calendarId}/events", await BuildEventBodyAsync(chore));
             if (!resp.IsSuccessStatusCode) return null;
             var evt = await resp.Content.ReadFromJsonAsync<GraphEvent>();
             return evt?.Id;
@@ -149,7 +149,7 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         try
         {
             var client = httpClientFactory.CreateClient("MicrosoftGraph");
-            await SendWithRefreshAsync(client, new HttpMethod("PATCH"), $"me/calendars/{calendarId}/events/{eventId}", BuildEventBody(chore));
+            await SendWithRefreshAsync(client, new HttpMethod("PATCH"), $"me/calendars/{calendarId}/events/{eventId}", await BuildEventBodyAsync(chore));
         }
         catch { }
     }
@@ -186,7 +186,7 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         catch { }
     }
 
-    private static object BuildEventBody(Chore chore)
+    private async Task<object> BuildEventBodyAsync(Chore chore)
     {
         var startMinutes = chore.StartTime ?? chore.RecurrenceResetTime ?? 9 * 60;
 
@@ -194,9 +194,9 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         if (chore.StartDate.HasValue)
             start = chore.StartDate.Value.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(startMinutes)));
         else if (chore.RecurrenceResetTime.HasValue)
-            start = ComputeNextOccurrence(DateTime.UtcNow, chore.RecurrenceResetTime.Value, chore.RecurrenceDaysOfWeek);
+            start = ComputeNextOccurrence(DateTime.Now, chore.RecurrenceResetTime.Value, chore.RecurrenceDaysOfWeek);
         else
-            start = DateTime.UtcNow;
+            start = DateTime.Now;
 
         DateTime end;
         if (chore.Deadline.HasValue && chore.StartDate.HasValue)
@@ -206,10 +206,15 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
 
         if (end <= start) end = start.AddHours(1);
 
+        // Times above are the user's local wall-clock time (e.g. "18:00"), so the event
+        // must be tagged with the browser's actual IANA time zone rather than "UTC" -
+        // otherwise Outlook re-interprets "18:00" as UTC and shifts it by the local offset.
+        var timeZone = await js.InvokeAsync<string>("blazorHelpers.getTimeZone");
+
         var subject = chore.Name;
         var body = new { contentType = "text", content = chore.Description ?? string.Empty };
-        var startDto = new { dateTime = start.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" };
-        var endDto = new { dateTime = end.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone = "UTC" };
+        var startDto = new { dateTime = start.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone };
+        var endDto = new { dateTime = end.ToString("yyyy-MM-ddTHH:mm:ss"), timeZone };
         var recurrence = BuildRecurrence(chore, start);
 
         if (recurrence is null)
