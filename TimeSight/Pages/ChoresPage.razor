@@ -85,6 +85,17 @@ else
                     </svg>
                     Subtasks only
                 </button>
+
+                <button class="filter-pill @(showCalendarChores ? "active" : "")" @onclick="ToggleShowCalendarChores">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    On calendar
+                </button>
             </div>
 
             <div class="filter-row">
@@ -130,12 +141,13 @@ else
 
     private bool showDone = false;
     private bool subtasksOnly = false;
+    private bool showCalendarChores = false;
     private HashSet<Guid> selectedDomainIds = [];
     private string searchQuery = "";
 
     private bool _isAdding;
     private bool _isSorting;
-    private bool IsFiltered => showDone || subtasksOnly || selectedDomainIds.Count > 0 ||
+    private bool IsFiltered => showDone || subtasksOnly || showCalendarChores || selectedDomainIds.Count > 0 ||
 !string.IsNullOrWhiteSpace(searchQuery);
 
     private List<(Chore chore, int depth)> orderedChores = [];
@@ -270,10 +282,19 @@ else
         RebuildOrderedChores();
     }
 
+    private void ToggleShowCalendarChores()
+    {
+        showCalendarChores = !showCalendarChores;
+        _newlyAddedChoreId = null;
+        _sortedChoreIds = null;
+        RebuildOrderedChores();
+    }
+
     private void ClearFilters()
     {
         showDone = false;
         subtasksOnly = false;
+        showCalendarChores = false;
         selectedDomainIds.Clear();
         searchQuery = "";
         _newlyAddedChoreId = null;
@@ -295,6 +316,8 @@ else
         var result = choresDic.AsEnumerable();
         if (!showDone)
             result = result.Where(c => !c.Value.IsDone);
+        if (!showCalendarChores)
+            result = result.Where(c => !c.Value.ShouldBeOnCalendar);
         if (selectedDomainIds.Count > 0)
             result = result.Where(c => c.Value.ChoreDomains.Any(cd => selectedDomainIds.Contains(cd.DomainId)));
         if (subtasksOnly)

@@ -22,7 +22,7 @@ public class OutlookSyncService(MicrosoftGraphService graphService, WorkspaceSta
 
     public async Task SyncChoreCreatedAsync(Chore chore)
     {
-        if (!HasCalendarDate(chore)) return;
+        if (!chore.ShouldBeOnCalendar) return;
         var (calId, wsId) = await EnsureCalendarAsync();
         if (calId is null) return;
 
@@ -43,7 +43,7 @@ public class OutlookSyncService(MicrosoftGraphService graphService, WorkspaceSta
 
         if (map.TryGetValue(chore.Id, out var existingEventId))
         {
-            if (HasCalendarDate(chore))
+            if (chore.ShouldBeOnCalendar)
             {
                 await graphService.UpdateEventAsync(calId, existingEventId, chore);
             }
@@ -54,7 +54,7 @@ public class OutlookSyncService(MicrosoftGraphService graphService, WorkspaceSta
                 await graphService.SaveEventMapAsync(wsId, map);
             }
         }
-        else if (HasCalendarDate(chore))
+        else if (chore.ShouldBeOnCalendar)
         {
             var eventId = await graphService.CreateEventAsync(calId, chore);
             if (eventId is not null)
@@ -78,7 +78,4 @@ public class OutlookSyncService(MicrosoftGraphService graphService, WorkspaceSta
             await graphService.SaveEventMapAsync(wsId, map);
         }
     }
-
-    private static bool HasCalendarDate(Chore chore) =>
-        chore.StartDate.HasValue || chore.Deadline.HasValue || chore.RecurrenceResetTime.HasValue;
 }

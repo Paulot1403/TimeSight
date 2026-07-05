@@ -146,6 +146,8 @@ public class Chore
 
     public bool IsSubtask => ParentChoreId != null;
 
+    public bool ShouldBeOnCalendar => StartDate.HasValue || Deadline.HasValue || RecurrenceResetTime.HasValue;
+
     public Chore GetRootOfThis()
     {
         if (ParentChoreId == null) return this;
