@@ -102,6 +102,7 @@ else
                 && !chore.RecurrenceIntervalHours.HasValue)
             {
                 var resetTime = TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(chore.RecurrenceResetTime.Value));
+                var recurDurationMinutes = chore.Duration.HasValue ? chore.Duration.Value * 15 : 60;
                 var today = DateOnly.FromDateTime(DateTime.Today);
                 for (int i = 0; i < 60; i++)
                 {
@@ -110,7 +111,7 @@ else
                     if ((chore.RecurrenceDaysOfWeek.Value & (1 << bit)) != 0)
                     {
                         var dt = day.ToDateTime(resetTime);
-                        result.Add(new("recur", chore.Name, dt, dt.AddHours(1), chore));
+                        result.Add(new("recur", chore.Name, dt, dt.AddMinutes(recurDurationMinutes), chore));
                     }
                 }
             }
