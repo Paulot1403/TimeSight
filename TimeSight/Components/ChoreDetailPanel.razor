@@ -48,7 +48,7 @@
                     <span class="panel-metric-val">@TimeSight.Models.Chore.DurationLabel(editDuration)</span>
                     <div class="form-check form-switch ms-auto mb-0">
                         <input class="form-check-input" type="checkbox" id="noDurationCheck"
-                               checked="@(editDuration == null)" @onchange="e => editDuration = (bool)e.Value! ? null : 2" />
+                               checked="@(editDuration == null)" @onchange="e => editDuration = (bool)e.Value! ? null : 4" />
                         <label class="form-check-label small" for="noDurationCheck">No estimate</label>
                     </div>
                 </div>
@@ -57,10 +57,8 @@
                     <input type="range" class="panel-range" min="1" max="@TimeSight.Models.Chore.MAX_DURATION"
                            value="@editDuration" @oninput="e => editDuration = int.Parse(e.Value!.ToString()!)" />
                     <div class="panel-range-labels">
-                        <span>5 min</span>
-                        <span>15 min</span>
-                        <span>45 min</span>
-                        <span>2 h</span>
+                        <span>@TimeSight.Models.Chore.DurationLabel(1)</span>
+                        <span>@TimeSight.Models.Chore.DurationLabel(TimeSight.Models.Chore.MAX_DURATION)</span>
                     </div>
                 }
             </div>
@@ -267,38 +265,6 @@
                         </div>
                     }
                 </div>
-                <div class="mb-4">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <label class="form-label mb-0">Deadline</label>
-                        @if (editDeadline is not null)
-                        {
-                            <button class="panel-subtask-remove ms-auto" title="Remove deadline"
-                                    @onclick="() => editDeadline = null">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                     stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            </button>
-                        }
-                    </div>
-                    <input type="date" class="form-control panel-date-input" value="@editDeadline"
-                           @oninput="e => editDeadline = e.Value?.ToString() is { Length: > 0 } s ? s : null" />
-                </div>
-
-                @if (editDeadline is not null)
-                {
-                    <div class="mb-4">
-                        <label class="form-label">Urgent within</label>
-                        <select class="form-control" value="@editEmergencyThresholdDays"
-                                @onchange="e => editEmergencyThresholdDays = int.Parse(e.Value!.ToString()!)">
-                            @foreach (var days in TimeSight.Models.Chore.EmergencyThresholdOptionsDays)
-                            {
-                                <option value="@days">@TimeSight.Models.Chore.EmergencyThresholdLabel(days)</option>
-                            }
-                        </select>
-                    </div>
-                }
 
             </div>
 
@@ -339,8 +305,6 @@
     private int? editDuration;
     private string? editStartDate;
     private string? editStartTime;
-    private string? editDeadline;
-    private int editEmergencyThresholdDays;
     private int? editRecurrenceIntervalHours;
     private string editRecurrenceStr
     {
@@ -420,8 +384,6 @@
         editDuration = Subtasks.Any() ? null : Chore?.Duration;
         editStartDate = Chore?.StartDate?.ToString("yyyy-MM-dd");
         editStartTime = Chore?.StartTime is { } st ? $"{st / 60:D2}:{st % 60:D2}" : null;
-        editDeadline = Chore?.Deadline?.ToString("yyyy-MM-dd");
-        editEmergencyThresholdDays = Chore?.EmergencyThresholdDays ?? TimeSight.Models.Chore.DefaultEmergencyThresholdDays;
         editRecurrenceIntervalHours = Chore?.RecurrenceIntervalHours;
         editDaysOfWeek = Chore?.RecurrenceDaysOfWeek ?? 127;
         editResetTime = Chore?.RecurrenceResetTime is { } t
@@ -561,18 +523,6 @@
             if (newStartTime != Chore!.StartTime)
             {
                 Chore.StartTime = newStartTime;
-                choreChanged = true;
-            }
-            DateOnly? newDeadline = editDeadline is not null ? DateOnly.Parse(editDeadline) : null;
-            if (newDeadline != Chore!.Deadline)
-            {
-                Chore.Deadline = newDeadline;
-                choreChanged = true;
-            }
-            int? newThreshold = newDeadline is not null ? editEmergencyThresholdDays : null;
-            if (newThreshold != Chore.EmergencyThresholdDays)
-            {
-                Chore.EmergencyThresholdDays = newThreshold;
                 choreChanged = true;
             }
             if (choreChanged)

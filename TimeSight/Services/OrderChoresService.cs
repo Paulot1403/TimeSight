@@ -18,9 +18,8 @@ public class OrderChoresService
     private static int GetPriorityScore(Chore chore)
     {
         int durationScore = chore.Duration.HasValue ? chore.Duration.Value : 0;
-        int emergency = chore.Emergency;
         int importance = chore.Importance;
-        return importance - durationScore + emergency;
+        return importance - durationScore;
     }
 
 }

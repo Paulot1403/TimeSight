@@ -558,22 +558,6 @@ label,
     color: var(--accent);
 }
 
-.chore-deadline-badge {
-    flex-shrink: 0;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 0.05rem 0.4rem;
-    border-radius: var(--radius-pill);
-    background: var(--accent-dim);
-    color: var(--accent-soft);
-    white-space: nowrap;
-}
-
-.chore-deadline-badge.chore-deadline-urgent {
-    background: var(--red-dim);
-    color: var(--red);
-}
-
 .chore-name-input {
     font-size: 0.975rem;
     font-weight: 500;
@@ -1408,7 +1392,6 @@ table.quickgrid {
     border-radius: 50%;
 }
 .cal-dot-start    { background: var(--accent); }
-.cal-dot-deadline { background: var(--red); }
 .cal-dot-recur    { background: #a78bfa; }
 
 .calendar-grid {
@@ -1479,12 +1462,6 @@ table.quickgrid {
     background: var(--accent-dim);
     color: var(--accent-soft);
     border-left: 2px solid var(--accent);
-}
-
-.cal-entry-deadline {
-    background: var(--red-dim);
-    color: var(--red);
-    border-left: 2px solid var(--red);
 }
 
 .cal-entry-recur {

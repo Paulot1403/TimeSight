@@ -198,13 +198,8 @@ public class MicrosoftGraphService(Supabase.Client supabase, IHttpClientFactory 
         else
             start = DateTime.Now;
 
-        DateTime end;
-        if (chore.Deadline.HasValue && chore.StartDate.HasValue)
-            end = chore.Deadline.Value.ToDateTime(new TimeOnly(23, 0));
-        else
-            end = start.AddHours(1);
-
-        if (end <= start) end = start.AddHours(1);
+        var durationMinutes = chore.Duration.HasValue ? chore.Duration.Value * 15 : 60;
+        DateTime end = start.AddMinutes(durationMinutes);
 
         // Times above are the user's local wall-clock time (e.g. "18:00"), so the event
         // must be tagged with the browser's actual IANA time zone rather than "UTC" -

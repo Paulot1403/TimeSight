@@ -25,8 +25,6 @@ public static class ChoreExtensions
             RecurrenceIntervalHours = chore.RecurrenceIntervalHours,
             RecurrenceResetTime = chore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = chore.RecurrenceDaysOfWeek,
-            Deadline = chore.Deadline,
-            EmergencyThresholdDays = chore.EmergencyThresholdDays,
             StartDate = chore.StartDate,
             StartTime = chore.StartTime,
             Importance = chore.Importance,

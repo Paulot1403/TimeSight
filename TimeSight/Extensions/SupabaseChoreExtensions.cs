@@ -25,8 +25,6 @@ public static class SupabaseChoreExtensions
             RecurrenceIntervalHours = supabaseChore.RecurrenceIntervalHours,
             RecurrenceResetTime = supabaseChore.RecurrenceResetTime,
             RecurrenceDaysOfWeek = supabaseChore.RecurrenceDaysOfWeek,
-            Deadline = supabaseChore.Deadline,
-            EmergencyThresholdDays = supabaseChore.EmergencyThresholdDays,
             StartDate = supabaseChore.StartDate,
             StartTime = supabaseChore.StartTime,
             Importance = supabaseChore.Importance ?? Chore.DEFAULT_IMPORTANCE,

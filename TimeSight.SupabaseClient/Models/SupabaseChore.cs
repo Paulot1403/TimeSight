@@ -56,12 +56,6 @@ public class SupabaseChore : BaseModel
     [Column("recurrence_reset_time")]
     public int? RecurrenceResetTime { get; set; }
 
-    [Column("deadline")]
-    public DateOnly? Deadline { get; set; }
-
-    [Column("emergency_threshold_days")]
-    public int? EmergencyThresholdDays { get; set; }
-
     [Column("start_date")]
     public DateOnly? StartDate { get; set; }
 

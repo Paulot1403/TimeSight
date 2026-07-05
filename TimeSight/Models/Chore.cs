@@ -9,39 +9,22 @@ public class Chore
 {
     public const int MAX_IMPORTANCE = 10;
     public const int DEFAULT_IMPORTANCE = 3;
-    public const int MAX_DURATION = 4;
-    public const int MAX_EMERGENCY = 5;
-
 
     /// <summary>
-    /// Seuils proposés à l'utilisateur pour "dans combien de temps une tâche devient urgente".
+    /// Nombre max de quarts d'heure sélectionnables pour <see cref="Duration"/> (16 = 4h).
     /// </summary>
-    public static readonly int[] EmergencyThresholdOptionsDays = [7, 14, 30, 60, 90];
+    public const int MAX_DURATION = 16;
 
-    /// <summary>
-    /// Valeur par défaut de <see cref="EmergencyThresholdDays"/> quand la tâche n'en définit pas.
-    /// </summary>
-    public const int DefaultEmergencyThresholdDays = 30;
-
-    public static string EmergencyThresholdLabel(int days) => days switch
+    public static string DurationLabel(int? duration)
     {
-        7 => "1 week",
-        14 => "2 weeks",
-        30 => "1 month",
-        60 => "2 months",
-        90 => "3 months",
-        _ => $"{days} days"
-    };
-
-    public static string DurationLabel(int? duration) => duration switch
-    {
-        null => "—",
-        1 => "5 min",
-        2 => "15 min",
-        3 => "45 min",
-        4 => "2 h",
-        _ => $"{duration}"
-    };
+        if (duration is not { } units) return "—";
+        var totalMinutes = units * 15;
+        var hours = totalMinutes / 60;
+        var minutes = totalMinutes % 60;
+        if (hours == 0) return $"{minutes} min";
+        if (minutes == 0) return $"{hours} h";
+        return $"{hours} h {minutes}";
+    }
 
     /// <summary>
     /// Choix proposés à l'utilisateur pour la récurrence "After interval", en heures.
@@ -77,7 +60,8 @@ public class Chore
     public int Importance { get; set; } = DEFAULT_IMPORTANCE;
 
     /// <summary>
-    /// De 1 à <see cref="Chore.MAX_DURATION"/>, ou null si pas d'estimation.
+    /// Durée estimée en quarts d'heure (1 = 15 min), de 1 à <see cref="Chore.MAX_DURATION"/>,
+    /// ou null si pas d'estimation.
     /// </summary>
     public int? Duration { get; set; } = null;
 
@@ -103,14 +87,6 @@ public class Chore
     /// </summary>
     public int? RecurrenceDaysOfWeek { get; set; }
 
-    public DateOnly? Deadline { get; set; }
-
-    /// <summary>
-    /// Nombre de jours avant la deadline à partir duquel CETTE tâche commence à devenir urgente.
-    /// null = utilise <see cref="DefaultEmergencyThresholdDays"/>.
-    /// </summary>
-    public int? EmergencyThresholdDays { get; set; }
-
     /// <summary>
     /// Date à laquelle on prévoit de commencer cette tâche.
     /// </summary>
@@ -120,18 +96,6 @@ public class Chore
     /// Heure de début prévue, en minutes depuis minuit (ex: 540 = 9h00). null = pas d'heure définie.
     /// </summary>
     public int? StartTime { get; set; }
-
-    public int Emergency
-    {
-        get
-        {
-            if (Deadline is null) return 0;
-            int threshold = EmergencyThresholdDays ?? DefaultEmergencyThresholdDays;
-            int daysUntil = Deadline.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-            if (daysUntil > threshold) return 0;
-            return Math.Max(0, MAX_EMERGENCY * (threshold - daysUntil) / threshold);
-        }
-    }
 
     public Chore? ParentChore
     {
@@ -146,7 +110,7 @@ public class Chore
 
     public bool IsSubtask => ParentChoreId != null;
 
-    public bool ShouldBeOnCalendar => StartDate.HasValue || Deadline.HasValue || RecurrenceResetTime.HasValue;
+    public bool ShouldBeOnCalendar => StartDate.HasValue || RecurrenceResetTime.HasValue;
 
     public Chore GetRootOfThis()
     {
