@@ -36,21 +36,6 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label d-block" for="domain-importance">
-                        Importance — <strong>@domain.Importance</strong>/@Domain.MAX_IMPORTANCE
-                    </label>
-                    <div style="width:100%">
-                        <input type="range" id="domain-importance" class="form-range w-100" min="0"
-                               max="@Domain.MAX_IMPORTANCE" step="1" value="@domain.Importance"
-                               @oninput="OnImportanceChanged" />
-                        <div class="d-flex justify-content-between mt-1 importance-labels">
-                            <span>Negligible </span>
-                            <span>Essential</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label" for="domain-color">Color</label>
                     <div class="domain-color-picker-wrap">
                         <input type="color" id="domain-color" class="domain-color-input"
@@ -88,11 +73,6 @@
     private Domain? domain;
     private bool _isSaving;
 
-    private void OnImportanceChanged(ChangeEventArgs e)
-    {
-        if (domain != null && int.TryParse(e.Value?.ToString(), out var v))
-            domain.Importance = v;
-    }
 
     public async Task Submit()
     {

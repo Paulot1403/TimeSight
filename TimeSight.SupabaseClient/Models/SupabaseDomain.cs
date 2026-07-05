@@ -18,8 +18,6 @@ public class SupabaseDomain : BaseModel
     public string? Color { get; set; }
     [Column("description")]
     public string? Description { get; set; }
-    [Column("importance")]
-    public int Importance { get; set; } = 3;
 
     [Column("done_score")]
     public string DoneScore { get; set; }

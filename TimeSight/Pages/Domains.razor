@@ -45,8 +45,6 @@ else
                         @context.Name
                     </div>
                 </TemplateColumn>
-                <PropertyColumn Property="d => d.Importance" Title="Importance" Class="domain-col-importance" />
-                <PropertyColumn Property="d => Domain.ComputePriority(d.DoneScore, d.Importance)" Title="Priority" Format="0.##" />
                 <PropertyColumn Property="d => d.DoneScore" Title="Done score" Format="0.##" Class="domain-col-donescore" />
 
                 <TemplateColumn Title="" Class="domain-col-icon">
@@ -73,8 +71,7 @@ else
                     }
                 </TemplateColumn>
                 <TemplateColumn Title="" Class="domain-col-edit">
-                    <button type="button" class="btn btn-outline-secondary btn-sm"
-                            @onclick="() => EditDomain(context)">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => EditDomain(context)">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                              stroke-linecap="round" stroke-linejoin="round" class="me-1">
                             <path d="M12 20h9" />
@@ -152,7 +149,6 @@ else
         else
             domains = [];
 
-        domains = domains.OrderByDescending(d => d.Importance).ToList();
         expandedId = null;
     }
 
