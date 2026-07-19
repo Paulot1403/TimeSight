@@ -98,8 +98,7 @@ else
             }
 
             // Fixed-schedule recurring: add upcoming occurrences for the next 60 days
-            if (chore.RecurrenceDaysOfWeek.HasValue && chore.RecurrenceResetTime.HasValue
-                && !chore.RecurrenceIntervalHours.HasValue)
+            if (chore.RecurrenceResetTime.HasValue && !chore.RecurrenceIntervalHours.HasValue)
             {
                 var resetTime = TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(chore.RecurrenceResetTime.Value));
                 var recurDurationMinutes = chore.Duration.HasValue ? chore.Duration.Value * 15 : 60;
@@ -108,7 +107,7 @@ else
                 {
                     var day = today.AddDays(i);
                     int bit = ((int)day.DayOfWeek + 6) % 7;
-                    if ((chore.RecurrenceDaysOfWeek.Value & (1 << bit)) != 0)
+                    if (!chore.RecurrenceDaysOfWeek.HasValue || (chore.RecurrenceDaysOfWeek.Value & (1 << bit)) != 0)
                     {
                         var dt = day.ToDateTime(resetTime);
                         result.Add(new("recur", chore.Name, dt, dt.AddMinutes(recurDurationMinutes), chore));
